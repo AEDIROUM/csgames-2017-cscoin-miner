@@ -1,15 +1,10 @@
 #include <glib.h>
 
+#include <omp.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "contrib/mt19937-64/mt64.h"
-
-extern int
-omp_get_thread_num (void);
-
-extern int
-omp_get_num_threads (void);
 
 static gint
 gint64cmp_asc (const void *a, const void *b)
