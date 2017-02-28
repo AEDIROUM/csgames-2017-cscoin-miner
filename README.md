@@ -5,7 +5,7 @@ The ultimate CSCoin miner, at your service!
 ## Usage
 
 ```
-cscoin-miner wss://csgames2017:8080/cscoins
+cscoin-miner [--wallet-id=<wallet_id>] <ws_url>
 ```
 
 ## Features
