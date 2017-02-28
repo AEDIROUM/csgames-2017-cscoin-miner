@@ -118,7 +118,6 @@ cscoin_solve_challenge (gint         challenge_id,
                 hash_prefix[3] == checksum_digest_str[3])
             {
                 done = TRUE;
-                #pragma omp critical
                 ret = g_strdup (nonce_str);
             }
             else
