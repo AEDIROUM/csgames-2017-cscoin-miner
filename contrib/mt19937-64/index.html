@@ -1,0 +1,59 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html">
+<title> Mersenne Twister: A random number generator (since 1997/10)</title>
+</head>
+<body bgcolor="ffffff" text="000000">
+
+<h2> Mersenne Twister 64bit version </h2>
+
+<a href="mt64.html">Japanese Version</a>
+
+<p>
+    Here is a C code of Mersenne Twister for 64 bit machines,
+   <a href="./VERSIONS/C-LANG/mt19937-64.c"> mt19937-64.c </a>,
+    with period 2^19937-1. And its output <a href="mt19937-64.out.txt">
+mt19937-64.out.txt</a>.
+</p>
+<p>
+    The recursion is similar but different, so the output is totally different
+from the 32-bit versions.
+</p>
+
+<p>
+    Here is an archive file <a href="mt19937-64.tgz">mt19937-64.tgz</a> and
+<a href="mt19937-64stdint.tgz">mt19937-64stdint.tgz</a>. In mt19937-64stdint.tgz
+64-bit unsigned integer is declared as uint64_t and 64-bit unsigned immediate
+value is declared using UINT64_C.
+It includes header file mt64.h and test main function file mt19937-64test.c.
+The file mt19937.c in this archive does not have main function. The archive has
+files listed below.
+</p>
+<ul>
+<li>mt19937-64.c</li>
+<li>mt19937-64test.c</li>
+<li>mt64.h</li>
+<li>mt19937-64.out.txt</li>
+</ul>
+<p>
+(2007/2/8) Adam Ierymenko informed us of a very simple speed up:
+see <a href="Ierymenko.html">here</a>.
+</p>
+<p>
+(2008/12/4) Change the argument definition of init_by_array to
+obey ANSI standard.
+</p>
+<a href="./emt.html"> Mersenne Twister Home Page</a>
+<hr />
+<p>
+  If you want a twice to four times faster variant of MT,
+   there is one designed for SIMD CPUs. It is faster than
+   the original MT, even in non-SIMD CPUs, and has better
+   assurance of randomenss. It also supports 64-bit output.
+  Downloadable from
+   <a href="SFMT/index.html">
+     "SIMD-oriented Fast Mersenne Twister (SFMT)"</a>.
+</p>
+
+</body>
+</html>
