@@ -52,7 +52,16 @@ namespace CSCoin
 			return 1;
 		}
 
-		var wallet_id = "";
+		var wallet = new OpenSSL.RSA ();
+
+		message ("Generating a random key...\n");
+		var e = new OpenSSL.Bignum ();
+		e.set_word (65537);
+		wallet.generate_key_ex (1024, e);
+
+		var wallet_id = Checksum.compute_for_string (ChecksumType.SHA256, wallet.d.bn2dec ());
+
+		message ("You wallet id is: %s", wallet_id);
 
 		var ws_url = args[1];
 
