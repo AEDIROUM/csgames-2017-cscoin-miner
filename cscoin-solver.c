@@ -82,7 +82,7 @@ cscoin_solve_challenge (gint         challenge_id,
 
             #pragma omp critical
             {
-                init_genrand64 (checksum_digest.seed);
+                init_genrand64 (GUINT64_FROM_LE (checksum_digest.seed));
 
                 gint i;
                 for (i = 0; i < nb_elements; i++)
