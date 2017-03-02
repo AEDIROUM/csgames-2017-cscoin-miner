@@ -15,7 +15,7 @@ gint64cmp_asc (const void *a, const void *b)
 static gint
 gint64cmp_desc (const void *a, const void *b)
 {
-    return *(guint64*) a < *(guint64*) b ? -1 : 1;
+    return *(guint64*) a > *(guint64*) b ? -1 : 1;
 }
 
 enum CSCoinChallengeType
