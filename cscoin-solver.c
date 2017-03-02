@@ -112,10 +112,7 @@ cscoin_solve_challenge (gint         challenge_id,
             const gchar * checksum_digest_str;
             checksum_digest_str = g_checksum_get_string (checksum);
 
-            if (hash_prefix[0] == checksum_digest_str[0] &&
-                hash_prefix[1] == checksum_digest_str[1] &&
-                hash_prefix[2] == checksum_digest_str[2] &&
-                hash_prefix[3] == checksum_digest_str[3])
+            if (strncmp (hash_prefix, checksum_digest_str, 4) == 0)
             {
                 done = TRUE;
                 ret = g_strdup (nonce_str);
