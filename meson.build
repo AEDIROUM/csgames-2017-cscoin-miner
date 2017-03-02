@@ -11,5 +11,11 @@ soup = dependency('libsoup-2.4')
 json_glib = dependency('json-glib-1.0')
 openssl = dependency('openssl')
 
-executable('cscoin-miner', 'cscoin-solver.c', 'cscoin-miner.vala', 'contrib/mt19937-64/mt19937-64.c',
-           dependencies: [posix, glib, gobject, gomp, soup, json_glib, openssl])
+solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'contrib/mt19937-64/mt19937-64.c',
+                     dependencies: [glib, gomp])
+
+executable('cscoin-miner', 'cscoin-miner.vala',
+           dependencies: [posix, glib, gobject, soup, json_glib, openssl],
+           link_with: solver_lib)
+
+subdir('tests')
