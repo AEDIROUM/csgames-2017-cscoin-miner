@@ -1,12 +1,9 @@
-#include <glib.h>
+#include "cscoin-solver.h"
+#include "cscoin-mt64.h"
 
 #include <omp.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include "cscoin-mt64.h"
-
-#include "contrib/mt19937-64/mt64.h"
 
 static gint
 gint64cmp_asc (const void *a, const void *b)
