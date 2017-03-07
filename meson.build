@@ -11,7 +11,7 @@ soup = dependency('libsoup-2.4')
 json_glib = dependency('json-glib-1.0')
 openssl = dependency('openssl')
 
-solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'contrib/mt19937-64/mt19937-64.c',
+solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'cscoin-mt64.c', 'contrib/mt19937-64/mt19937-64.c',
                      dependencies: [glib, gomp])
 
 executable('cscoin-miner', 'cscoin-miner.vala',

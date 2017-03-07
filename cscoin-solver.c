@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "cscoin-mt64.h"
+
 #include "contrib/mt19937-64/mt64.h"
 
 static gint
@@ -51,6 +53,7 @@ cscoin_solve_challenge (gint         challenge_id,
     #pragma omp parallel
     {
         g_autoptr (GChecksum) checksum = g_checksum_new (G_CHECKSUM_SHA256);
+        CSCoinMT64 mt64;
         union {
             guint8  digest[32];
             guint64 seed;
@@ -59,6 +62,9 @@ cscoin_solve_challenge (gint         challenge_id,
         guint64 numbers[nb_elements];
         guint nonce;
         gchar nonce_str[32];
+        gint i;
+
+        cscoin_mt64_init (&mt64);
 
         /* OpenMP partitionning */
         guint nonce_from, nonce_to;
@@ -80,15 +86,11 @@ cscoin_solve_challenge (gint         challenge_id,
             g_checksum_get_digest (checksum, checksum_digest.digest, &checksum_digest_len);
             g_checksum_reset (checksum);
 
-            #pragma omp critical
-            {
-                init_genrand64 (GUINT64_FROM_LE (checksum_digest.seed));
+            cscoin_mt64_set_seed (&mt64, GUINT64_FROM_LE (checksum_digest.seed));
 
-                gint i;
-                for (i = 0; i < nb_elements; i++)
-                {
-                    numbers[i] = genrand64_int64 ();
-                }
+            for (i = 0; i < nb_elements; i++)
+            {
+                numbers[i] = cscoin_mt64_next_uint64 (&mt64);
             }
 
             switch (challenge_type)
@@ -101,7 +103,6 @@ cscoin_solve_challenge (gint         challenge_id,
                     break;
             }
 
-            gint i;
             gchar number_str[32];
             for (i = 0; i < nb_elements; i++)
             {
