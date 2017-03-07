@@ -19,4 +19,5 @@ executable('cscoin-miner', 'cscoin-miner.vala',
            link_with: solver_lib)
 
 subdir('contrib/mt19937-64')
+subdir('benchmarks')
 subdir('tests')
