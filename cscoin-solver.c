@@ -7,13 +7,13 @@
 #include <string.h>
 
 static gint
-gint64cmp_asc (const void *a, const void *b)
+guint64cmp_asc (const void *a, const void *b)
 {
     return *(guint64*) a < *(guint64*) b ? -1 : 1;
 }
 
 static gint
-gint64cmp_desc (const void *a, const void *b)
+guint64cmp_desc (const void *a, const void *b)
 {
     return *(guint64*) a > *(guint64*) b ? -1 : 1;
 }
@@ -99,10 +99,10 @@ cscoin_solve_challenge (gint           challenge_id,
             switch (challenge_type)
             {
                 case CSCOIN_CHALLENGE_SORTED_LIST:
-                    qsort (numbers, nb_elements, sizeof (guint64), gint64cmp_asc);
+                    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_asc);
                     break;
                 case CSCOIN_CHALLENGE_REVERSE_SORTED_LIST:
-                    qsort (numbers, nb_elements, sizeof (guint64), gint64cmp_desc);
+                    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_desc);
                     break;
             }
 
