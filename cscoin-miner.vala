@@ -132,7 +132,7 @@ namespace CSCoin
 
 				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge_id);
 				ws.send_text (Json.to_string (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()), false));
-			}, -1, false);
+			}, 1, true);
 
 			ws.closing.connect (() => {
 				warning ("The connection is closing...");
