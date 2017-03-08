@@ -1,8 +1,11 @@
-extern string cscoin_solve_challenge (int    challenge_id,
-                                      string challenge_name,
-                                      string last_solution_hash,
-                                      string hash_prefix,
-                                      int    nb_elements);
+using GLib;
+
+extern string cscoin_solve_challenge (int          challenge_id,
+                                      string       challenge_name,
+                                      string       last_solution_hash,
+                                      string       hash_prefix,
+                                      int          nb_elements,
+                                      Cancellable? cancellable = null) throws Error;
 
 void main ()
 {

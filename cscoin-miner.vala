@@ -3,11 +3,12 @@ using GLib;
 [CCode (lower_case_cprefix = "cscoin_")]
 namespace CSCoin
 {
-	extern string solve_challenge (int    challenge_id,
-	                               string challenge_name,
-	                               string last_solution_hash,
-	                               string hash_prefix,
-	                               int    nb_elements);
+	extern string solve_challenge (int          challenge_id,
+	                               string       challenge_name,
+	                               string       last_solution_hash,
+	                               string       hash_prefix,
+	                               int          nb_elements,
+	                               Cancellable? cancellable = null) throws Error;
 
 	Json.Node generate_command (string command_name, ...)
 	{
@@ -18,9 +19,20 @@ namespace CSCoin
 		builder.add_string_value (command_name);
 
 		builder.set_member_name ("args");
-		builder.begin_array ();
+		builder.begin_object ();
+		var list = va_list ();
+		unowned string? key, val;
+		for (key = list.arg<string?> (), val = list.arg<string?> ();
+		     key != null && val != null;
+		     key = list.arg<string?> (), val = list.arg<string?> ())
+		{
+			builder.set_member_name (key.replace ("-", "_"));
+			builder.add_string_value (val);
+		}
 		// TODO: add command arguments
-		builder.end_array ();
+		builder.end_object ();
+
+		builder.end_object ();
 
 		return builder.get_root ();
 	}
@@ -54,14 +66,12 @@ namespace CSCoin
 
 		var wallet = new OpenSSL.RSA ();
 
-		message ("Generating a random key...\n");
+		message ("Generating a random key pair...");
 		var e = new OpenSSL.Bignum ();
 		e.set_word (65537);
 		wallet.generate_key_ex (1024, e);
 
 		var wallet_id = Checksum.compute_for_string (ChecksumType.SHA256, wallet.d.bn2dec ());
-
-		message ("You wallet id is: %s", wallet_id);
 
 		var ws_url = args[1];
 
@@ -79,38 +89,75 @@ namespace CSCoin
 				error (err.message);
 			}
 
+			Cancellable? current_challenge_cancellable = null;
+
 			var challenge_executor = new ThreadPool<Json.Object>.with_owned_data ((challenge) => {
 				var time_left = challenge.get_int_member ("time_left");
 				var challenge_id = challenge.get_int_member ("challenge_id");
+				var challenge_name = challenge.get_string_member ("challenge_name");
+				var last_solution_hash = challenge.get_string_member ("last_solution_hash");
+				var hash_prefix = challenge.get_string_member ("hash_prefix");
+				var parameters = challenge.get_member ("parameters");
 
-				message ("Received challenge #%lld.", challenge_id);
+				message ("Received challenge #%lld: challenge-name: %s, last-solution-hash: %s, hash-prefix: %s, parameters: %s.",
+				         challenge_id,
+				         challenge_name,
+				         last_solution_hash,
+				         hash_prefix,
+				         Json.to_string (parameters, false));
 
 				var started = get_monotonic_time ();
-				var nonce = solve_challenge ((int) challenge_id,
-				                             challenge.get_string_member ("challenge_type"),
-				                             challenge.get_string_member ("last_hash_solution"),
-				                             challenge.get_string_member ("hash_prefix"),
-				                             (int) challenge.get_object_member ("args").get_int_member ("nb_elements"));
 
-				message ("Solved with nonce '%s' in %lldms (%lds was given).", nonce,
-				                                                               (get_monotonic_time () - started) / 1000,
-				                                                               time_left);
+				string nonce;
+				try
+				{
+					nonce = solve_challenge ((int) challenge_id,
+					                         challenge_name,
+					                         last_solution_hash,
+					                         hash_prefix,
+					                         (int) parameters.get_object ().get_int_member ("nb_elements"),
+					                         current_challenge_cancellable);
+				}
+				catch (Error err)
+				{
+					critical (err.message);
+					return;
+				}
 
-				message ("Submitting nonce '%s' for challenge %lld to authority...", nonce, challenge_id);
-				ws.send_text (Json.to_string (generate_command ("submission", wallet_id: wallet_id, nonce: nonce), false));
-				// TODO: submit nonce to authority
+				message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
+				         challenge_id,
+				         (get_monotonic_time () - started) / 1000,
+				         time_left,
+				         nonce);
+
+				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge_id);
+				ws.send_text (Json.to_string (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()), false));
 			}, -1, false);
 
-			ws.send_text (Json.to_string (generate_command ("get_current_challenge"), false));
+			ws.closing.connect (() => {
+				warning ("The connection is closing...");
+			});
+
+			ws.closed.connect (() => {
+				message ("The connection is closed and will be reestablished in a few...");
+			});
+
+			ws.error.connect ((err) => {
+				critical (err.message);
+			});
 
 			ws.message.connect ((type, payload) => {
 				var response = Json.from_string ((string) payload.get_data ()).get_object ();
+
 				if (response.has_member ("challenge_id"))
 				{
+					/* cancel any running challenge */
+					current_challenge_cancellable.cancel ();
+					current_challenge_cancellable = new Cancellable ();
+
 					try
 					{
 						challenge_executor.add (response);
-						challenge_executor.move_to_front (response);
 					}
 					catch (ThreadError err)
 					{
@@ -119,13 +166,12 @@ namespace CSCoin
 				}
 				else if (response.has_member ("error"))
 				{
-					warning (response.get_string_member ("error"));
-				}
-				else
-				{
-					// TODO: handle other responses...
+					critical ("Received an error from CA: %s.", response.get_string_member ("error"));
 				}
 			});
+
+			ws.send_text (Json.to_string (generate_command ("register_wallet", name: "diroum", key: "", signature: ""), false));
+			ws.send_text (Json.to_string (generate_command ("get_current_challenge"), false));
 		});
 
 		new MainLoop ().run ();

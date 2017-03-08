@@ -1,11 +1,14 @@
+using GLib;
+
 extern void init_genrand64 (uint64 seed);
 extern uint64 genrand64_int64 ();
 
-extern string cscoin_solve_challenge (int    challenge_id,
-                                      string challenge_name,
-                                      string last_solution_hash,
-                                      string hash_prefix,
-                                      int    nb_elements);
+extern string cscoin_solve_challenge (int          challenge_id,
+                                      string       challenge_name,
+                                      string       last_solution_hash,
+                                      string       hash_prefix,
+                                      int          nb_elements,
+                                      Cancellable? cancellable = null) throws Error;
 
 
 int main (string[] args)

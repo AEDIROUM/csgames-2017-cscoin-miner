@@ -25,11 +25,13 @@ enum CSCoinChallengeType
 };
 
 gchar *
-cscoin_solve_challenge (gint         challenge_id,
-                        const gchar *challenge_name,
-                        const gchar *last_solution_hash,
-                        const gchar *hash_prefix,
-                        gint         nb_elements)
+cscoin_solve_challenge (gint           challenge_id,
+                        const gchar   *challenge_name,
+                        const gchar   *last_solution_hash,
+                        const gchar   *hash_prefix,
+                        gint           nb_elements,
+                        GCancellable  *cancellable,
+                        GError       **error)
 {
     enum CSCoinChallengeType challenge_type;
     gboolean done = FALSE;
@@ -75,7 +77,7 @@ cscoin_solve_challenge (gint         challenge_id,
 
         for (nonce = nonce_from; nonce < nonce_to; nonce++)
         {
-            if (G_UNLIKELY (done))
+            if (G_UNLIKELY (done || g_cancellable_is_cancelled (cancellable)))
             {
                 break;
             }
@@ -121,6 +123,11 @@ cscoin_solve_challenge (gint         challenge_id,
                 ret = g_strdup (nonce_str);
             }
         }
+    }
+
+    if (g_cancellable_set_error_if_cancelled (cancellable, error))
+    {
+        return NULL;
     }
 
     return ret;
