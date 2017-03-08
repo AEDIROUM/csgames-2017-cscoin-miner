@@ -12,7 +12,7 @@ json_glib = dependency('json-glib-1.0')
 openssl = dependency('openssl')
 
 solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'cscoin-mt64.c',
-                     dependencies: [glib, gomp])
+                     dependencies: [glib, gomp, openssl])
 
 executable('cscoin-miner', 'cscoin-miner.vala',
            dependencies: [posix, glib, gobject, soup, json_glib, openssl],

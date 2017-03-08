@@ -2,6 +2,7 @@
 #include "cscoin-mt64.h"
 
 #include <omp.h>
+#include <openssl/sha.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -33,6 +34,7 @@ cscoin_solve_challenge (gint         challenge_id,
     enum CSCoinChallengeType challenge_type;
     gboolean done = FALSE;
     gchar *ret = NULL;
+    guint16 hash_prefix_num;
 
     if (strcmp (challenge_name, "sorted_list") == 0)
     {
@@ -47,15 +49,17 @@ cscoin_solve_challenge (gint         challenge_id,
         g_return_val_if_reached (NULL);
     }
 
+    hash_prefix_num = GUINT16_FROM_BE (strtol (hash_prefix, NULL, 16));
+
     #pragma omp parallel
     {
-        g_autoptr (GChecksum) checksum = g_checksum_new (G_CHECKSUM_SHA256);
+        SHA256_CTX checksum;
         CSCoinMT64 mt64;
         union {
-            guint8  digest[32];
+            guint8  digest[SHA256_DIGEST_LENGTH];
             guint64 seed;
+            guint16 prefix;
         } checksum_digest;
-        gsize checksum_digest_len = 32;
         guint64 numbers[nb_elements];
         guint nonce;
         gchar nonce_str[32];
@@ -78,10 +82,10 @@ cscoin_solve_challenge (gint         challenge_id,
 
             g_snprintf (nonce_str, 32, "%u", nonce);
 
-            g_checksum_update (checksum, (guchar*) last_solution_hash, 64);
-            g_checksum_update (checksum, (guchar*) nonce_str, strlen (nonce_str));
-            g_checksum_get_digest (checksum, checksum_digest.digest, &checksum_digest_len);
-            g_checksum_reset (checksum);
+            SHA256_Init (&checksum);
+            SHA256_Update (&checksum, last_solution_hash, 64);
+            SHA256_Update (&checksum, nonce_str, strlen (nonce_str));
+            SHA256_Final (checksum_digest.digest, &checksum);
 
             cscoin_mt64_set_seed (&mt64, GUINT64_FROM_LE (checksum_digest.seed));
 
@@ -100,24 +104,21 @@ cscoin_solve_challenge (gint         challenge_id,
                     break;
             }
 
+            SHA256_Init (&checksum);
+
             gchar number_str[32];
             for (i = 0; i < nb_elements; i++)
             {
                 g_snprintf (number_str, 32, "%lu", numbers[i]);
-                g_checksum_update (checksum, (guchar*) number_str, strlen (number_str));
+                SHA256_Update (&checksum, number_str, strlen (number_str));
             }
 
-            const gchar * checksum_digest_str;
-            checksum_digest_str = g_checksum_get_string (checksum);
+            SHA256_Final (checksum_digest.digest, &checksum);
 
-            if (strncmp (hash_prefix, checksum_digest_str, 4) == 0)
+            if (hash_prefix_num == GUINT16_FROM_LE (checksum_digest.prefix))
             {
                 done = TRUE;
                 ret = g_strdup (nonce_str);
-            }
-            else
-            {
-                g_checksum_reset (checksum);
             }
         }
     }
