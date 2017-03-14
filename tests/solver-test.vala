@@ -10,7 +10,7 @@ int main (string[] args)
 	Test.add_func ("/sorted_list", () => {
 		var hash_prefix = "768e";
 		var last_solution_hash = Checksum.compute_for_string (ChecksumType.SHA256, "test");
-		var nonce = CSCoin.solve_challenge (0, "sorted_list", last_solution_hash, hash_prefix, CSCoin.ChallengeParameters () {nb_elements = 20});
+		var nonce = CSCoin.solve_challenge (0, CSCoin.ChallengeType.SORTED_LIST, last_solution_hash, hash_prefix, CSCoin.ChallengeParameters () {nb_elements = 20});
 
 		var seed_str = Checksum.compute_for_string (ChecksumType.SHA256, last_solution_hash + nonce);
 		var seed = uint64.parse ("0x" + seed_str[14:16] + seed_str[12:14] + seed_str[10:12] + seed_str[8:10] + seed_str[6:8] + seed_str[4:6] + seed_str[2:4] + seed_str[0:2]);
@@ -37,7 +37,7 @@ int main (string[] args)
 	Test.add_func ("/reverse_sorted_list", () => {
 		var hash_prefix = "768e";
 		var last_solution_hash = Checksum.compute_for_string (ChecksumType.SHA256, "test");
-		var nonce = CSCoin.solve_challenge (0, "reverse_sorted_list", last_solution_hash, hash_prefix, CSCoin.ChallengeParameters () {nb_elements = 20});
+		var nonce = CSCoin.solve_challenge (0, CSCoin.ChallengeType.REVERSE_SORTED_LIST, last_solution_hash, hash_prefix, CSCoin.ChallengeParameters () {nb_elements = 20});
 
 		var seed_str = Checksum.compute_for_string (ChecksumType.SHA256, last_solution_hash + nonce);
 		var seed = uint64.parse ("0x" + seed_str[14:16] + seed_str[12:14] + seed_str[10:12] + seed_str[8:10] + seed_str[6:8] + seed_str[4:6] + seed_str[2:4] + seed_str[0:2]);

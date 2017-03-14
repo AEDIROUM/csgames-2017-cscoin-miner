@@ -4,6 +4,15 @@
 #include <glib.h>
 #include <gio/gio.h>
 
+typedef enum _CSCoinChallengeType CSCoinChallengeType;
+
+enum _CSCoinChallengeType
+{
+    CSCOIN_CHALLENGE_TYPE_SORTED_LIST,
+    CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST,
+    CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH
+};
+
 typedef union _CSCoinChallengeParameters CSCoinChallengeParameters;
 
 union _CSCoinChallengeParameters
@@ -24,7 +33,7 @@ union _CSCoinChallengeParameters
 };
 
 gchar * cscoin_solve_challenge (gint                        challenge_id,
-                                const gchar                *challenge_name,
+                                CSCoinChallengeType         challenge_type,
                                 const gchar                *last_solution_hash,
                                 const gchar                *hash_prefix,
                                 CSCoinChallengeParameters  *parameters,

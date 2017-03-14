@@ -18,13 +18,6 @@ guint64cmp_desc (const void *a, const void *b)
     return *(guint64*) a > *(guint64*) b ? -1 : 1;
 }
 
-enum CSCoinChallengeType
-{
-    CSCOIN_CHALLENGE_SORTED_LIST,
-    CSCOIN_CHALLENGE_REVERSE_SORTED_LIST,
-    CSCOIN_CHALLENGE_SHORTEST_PATH
-};
-
 static void
 solve_sorted_list_challenge (CSCoinMT64 *mt64,
                              SHA256_CTX *checksum,
@@ -80,36 +73,39 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // TODO
 }
 
+CSCoinChallengeType
+cscoin_challenge_type_from_string (gchar *str)
+{
+    if (strcmp (str, "sorted_list") == 0)
+    {
+        return CSCOIN_CHALLENGE_TYPE_SORTED_LIST;
+    }
+    else if (strcmp (str, "reverse_sorted_list") == 0)
+    {
+        return CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST;
+    }
+    else if (strcmp (str, "shortest_path") == 0)
+    {
+        return CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH;
+    }
+    else
+    {
+        g_return_val_if_reached (0);
+    }
+}
+
 gchar *
 cscoin_solve_challenge (gint                        challenge_id,
-                        const gchar                *challenge_name,
+                        CSCoinChallengeType         challenge_type,
                         const gchar                *last_solution_hash,
                         const gchar                *hash_prefix,
                         CSCoinChallengeParameters  *parameters,
                         GCancellable               *cancellable,
                         GError                    **error)
 {
-    enum CSCoinChallengeType challenge_type;
     gboolean done = FALSE;
     gchar *ret = NULL;
     guint16 hash_prefix_num;
-
-    if (strcmp (challenge_name, "sorted_list") == 0)
-    {
-        challenge_type = CSCOIN_CHALLENGE_SORTED_LIST;
-    }
-    else if (strcmp (challenge_name, "reverse_sorted_list") == 0)
-    {
-        challenge_type = CSCOIN_CHALLENGE_REVERSE_SORTED_LIST;
-    }
-    else if (strcmp (challenge_name, "shortest_path") == 0)
-    {
-        challenge_type = CSCOIN_CHALLENGE_SHORTEST_PATH;
-    }
-    else
-    {
-        g_return_val_if_reached (NULL);
-    }
 
     hash_prefix_num = GUINT16_FROM_BE (strtol (hash_prefix, NULL, 16));
 
@@ -153,22 +149,25 @@ cscoin_solve_challenge (gint                        challenge_id,
 
             switch (challenge_type)
             {
-                case CSCOIN_CHALLENGE_SORTED_LIST:
+                case CSCOIN_CHALLENGE_TYPE_SORTED_LIST:
                     solve_sorted_list_challenge (&mt64,
                                                  &checksum,
                                                  parameters->sorted_list.nb_elements);
                     break;
-                case CSCOIN_CHALLENGE_REVERSE_SORTED_LIST:
+                case CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST:
                     solve_reverse_sorted_list_challenge (&mt64,
                                                          &checksum,
                                                          parameters->reverse_sorted_list.nb_elements);
                     break;
-                case CSCOIN_CHALLENGE_SHORTEST_PATH:
+                case CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH:
                     solve_shortest_path_challenge (&mt64,
                                                    &checksum,
                                                    parameters->shortest_path.grid_size,
                                                    parameters->shortest_path.nb_blockers);
                     break;
+                default:
+                    /* cannot break from OpenMP section */
+                    g_critical ("Unknown challenge type %d, nothing will be performed.", challenge_type);
             }
 
             SHA256_Final (checksum_digest.digest, &checksum);

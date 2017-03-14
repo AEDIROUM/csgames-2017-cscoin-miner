@@ -101,15 +101,16 @@ namespace CSCoin
 
 				var started = get_monotonic_time ();
 
+				var challenge_type       = ChallengeType.from_string (challenge_name);
 				var challenge_parameters = ChallengeParameters ();
 
-				switch (challenge_name)
+				switch (challenge_type)
 				{
-					case "sorted_list":
-					case "reverse_sorted_list":
+					case ChallengeType.SORTED_LIST:
+					case ChallengeType.REVERSE_SORTED_LIST:
 						challenge_parameters.nb_elements = (int) parameters.get_object ().get_int_member ("nb_elements");
 						break;
-					case "shortest_path":
+					case ChallengeType.SHORTEST_PATH:
 						challenge_parameters.grid_size   = (int) parameters.get_object ().get_int_member ("grid_size");
 						challenge_parameters.nb_blockers = (int) parameters.get_object ().get_int_member ("nb_blockers");
 						break;
@@ -119,7 +120,7 @@ namespace CSCoin
 				try
 				{
 					nonce = solve_challenge ((int) challenge_id,
-					                         challenge_name,
+					                         challenge_type,
 					                         last_solution_hash,
 					                         hash_prefix,
 					                         challenge_parameters,
