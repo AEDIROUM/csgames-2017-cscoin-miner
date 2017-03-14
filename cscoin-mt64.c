@@ -23,7 +23,7 @@
 CSCoinMT64 *
 cscoin_mt64_new (void)
 {
-    return g_malloc (sizeof (CSCoinMT64));
+    return g_malloc0 (sizeof (CSCoinMT64));
 }
 
 void
