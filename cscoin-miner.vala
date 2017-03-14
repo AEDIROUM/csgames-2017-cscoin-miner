@@ -3,12 +3,17 @@ using GLib;
 [CCode (lower_case_cprefix = "cscoin_")]
 namespace CSCoin
 {
-	extern string solve_challenge (int          challenge_id,
-	                               string       challenge_name,
-	                               string       last_solution_hash,
-	                               string       hash_prefix,
-	                               int          nb_elements,
-	                               Cancellable? cancellable = null) throws Error;
+	extern struct Parameters
+	{
+		public int nb_elements;
+	}
+
+	extern string solve_challenge (int               challenge_id,
+	                               string            challenge_name,
+	                               string            last_solution_hash,
+	                               string            hash_prefix,
+	                               CSCoin.Parameters parameters,
+	                               Cancellable?      cancellable = null) throws Error;
 
 	Json.Node generate_command (string command_name, ...)
 	{
@@ -108,6 +113,19 @@ namespace CSCoin
 
 				var started = get_monotonic_time ();
 
+				var challenge_parameters = Parameters ();
+
+				switch (challenge_name)
+				{
+					case "sorted_list":
+					case "reverse_sorted_list":
+						challenge_parameters.nb_elements = (int) parameters.get_object ().get_int_member ("nb_elements");
+						break;
+					case "shortest_path":
+						// TODO
+						break;
+				}
+
 				string nonce;
 				try
 				{
@@ -115,7 +133,7 @@ namespace CSCoin
 					                         challenge_name,
 					                         last_solution_hash,
 					                         hash_prefix,
-					                         (int) parameters.get_object ().get_int_member ("nb_elements"),
+					                         challenge_parameters,
 					                         current_challenge_cancellable);
 				}
 				catch (Error err)

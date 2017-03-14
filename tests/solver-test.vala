@@ -3,12 +3,17 @@ using GLib;
 extern void init_genrand64 (uint64 seed);
 extern uint64 genrand64_int64 ();
 
-extern string cscoin_solve_challenge (int          challenge_id,
-                                      string       challenge_name,
-                                      string       last_solution_hash,
-                                      string       hash_prefix,
-                                      int          nb_elements,
-                                      Cancellable? cancellable = null) throws Error;
+extern struct CSCoin.Parameters
+{
+	public int nb_elements;
+}
+
+extern string cscoin_solve_challenge (int               challenge_id,
+                                      string            challenge_name,
+                                      string            last_solution_hash,
+                                      string            hash_prefix,
+                                      CSCoin.Parameters parameters,
+                                      Cancellable?      cancellable = null) throws Error;
 
 
 int main (string[] args)
@@ -18,7 +23,7 @@ int main (string[] args)
 	Test.add_func ("/sorted_list", () => {
 		var hash_prefix = "768e";
 		var last_solution_hash = Checksum.compute_for_string (ChecksumType.SHA256, "test");
-		var nonce = cscoin_solve_challenge (0, "sorted_list", last_solution_hash, hash_prefix, 20);
+		var nonce = cscoin_solve_challenge (0, "sorted_list", last_solution_hash, hash_prefix, CSCoin.Parameters () {nb_elements = 20});
 
 		var seed_str = Checksum.compute_for_string (ChecksumType.SHA256, last_solution_hash + nonce);
 		var seed = uint64.parse ("0x" + seed_str[14:16] + seed_str[12:14] + seed_str[10:12] + seed_str[8:10] + seed_str[6:8] + seed_str[4:6] + seed_str[2:4] + seed_str[0:2]);
@@ -45,7 +50,7 @@ int main (string[] args)
 	Test.add_func ("/reverse_sorted_list", () => {
 		var hash_prefix = "768e";
 		var last_solution_hash = Checksum.compute_for_string (ChecksumType.SHA256, "test");
-		var nonce = cscoin_solve_challenge (0, "reverse_sorted_list", last_solution_hash, hash_prefix, 20);
+		var nonce = cscoin_solve_challenge (0, "reverse_sorted_list", last_solution_hash, hash_prefix, CSCoin.Parameters () {nb_elements = 20});
 
 		var seed_str = Checksum.compute_for_string (ChecksumType.SHA256, last_solution_hash + nonce);
 		var seed = uint64.parse ("0x" + seed_str[14:16] + seed_str[12:14] + seed_str[10:12] + seed_str[8:10] + seed_str[6:8] + seed_str[4:6] + seed_str[2:4] + seed_str[0:2]);

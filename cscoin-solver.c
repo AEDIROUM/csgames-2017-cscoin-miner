@@ -21,17 +21,73 @@ guint64cmp_desc (const void *a, const void *b)
 enum CSCoinChallengeType
 {
     CSCOIN_CHALLENGE_SORTED_LIST,
-    CSCOIN_CHALLENGE_REVERSE_SORTED_LIST
+    CSCOIN_CHALLENGE_REVERSE_SORTED_LIST,
+    CSCOIN_CHALLENGE_SHORTEST_PATH
 };
 
+static void
+solve_sorted_list_challenge (CSCoinMT64 *mt64,
+                             SHA256_CTX *checksum,
+                             gint        nb_elements)
+{
+    gint i;
+    guint64 numbers[nb_elements];
+
+    for (i = 0; i < nb_elements; i++)
+    {
+        numbers[i] = cscoin_mt64_next_uint64 (mt64);
+    }
+
+    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_asc);
+
+    gchar number_str[32];
+    for (i = 0; i < nb_elements; i++)
+    {
+        g_snprintf (number_str, 32, "%lu", numbers[i]);
+        SHA256_Update (checksum, number_str, strlen (number_str));
+    }
+}
+
+static void
+solve_reverse_sorted_list_challenge (CSCoinMT64 *mt64,
+                                     SHA256_CTX *checksum,
+                                     gint        nb_elements)
+{
+    gint i;
+    guint64 numbers[nb_elements];
+
+    for (i = 0; i < nb_elements; i++)
+    {
+        numbers[i] = cscoin_mt64_next_uint64 (mt64);
+    }
+
+    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_desc);
+
+    gchar number_str[32];
+    for (i = 0; i < nb_elements; i++)
+    {
+        g_snprintf (number_str, 32, "%lu", numbers[i]);
+        SHA256_Update (checksum, number_str, strlen (number_str));
+    }
+}
+
+static void
+solve_shortest_path_challenge (CSCoinMT64 *mt64,
+                               SHA256_CTX *checksum,
+                               gint        grid_size,
+                               gint        nb_blockers)
+{
+    // TODO
+}
+
 gchar *
-cscoin_solve_challenge (gint           challenge_id,
-                        const gchar   *challenge_name,
-                        const gchar   *last_solution_hash,
-                        const gchar   *hash_prefix,
-                        gint           nb_elements,
-                        GCancellable  *cancellable,
-                        GError       **error)
+cscoin_solve_challenge (gint                        challenge_id,
+                        const gchar                *challenge_name,
+                        const gchar                *last_solution_hash,
+                        const gchar                *hash_prefix,
+                        CSCoinChallengeParameters  *parameters,
+                        GCancellable               *cancellable,
+                        GError                    **error)
 {
     enum CSCoinChallengeType challenge_type;
     gboolean done = FALSE;
@@ -45,6 +101,10 @@ cscoin_solve_challenge (gint           challenge_id,
     else if (strcmp (challenge_name, "reverse_sorted_list") == 0)
     {
         challenge_type = CSCOIN_CHALLENGE_REVERSE_SORTED_LIST;
+    }
+    else if (strcmp (challenge_name, "shortest_path") == 0)
+    {
+        challenge_type = CSCOIN_CHALLENGE_SHORTEST_PATH;
     }
     else
     {
@@ -62,10 +122,8 @@ cscoin_solve_challenge (gint           challenge_id,
             guint64 seed;
             guint16 prefix;
         } checksum_digest;
-        guint64 numbers[nb_elements];
         guint nonce;
         gchar nonce_str[32];
-        gint i;
 
         cscoin_mt64_init (&mt64);
 
@@ -91,28 +149,26 @@ cscoin_solve_challenge (gint           challenge_id,
 
             cscoin_mt64_set_seed (&mt64, GUINT64_FROM_LE (checksum_digest.seed));
 
-            for (i = 0; i < nb_elements; i++)
-            {
-                numbers[i] = cscoin_mt64_next_uint64 (&mt64);
-            }
+            SHA256_Init (&checksum);
 
             switch (challenge_type)
             {
                 case CSCOIN_CHALLENGE_SORTED_LIST:
-                    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_asc);
+                    solve_sorted_list_challenge (&mt64,
+                                                 &checksum,
+                                                 parameters->sorted_list.nb_elements);
                     break;
                 case CSCOIN_CHALLENGE_REVERSE_SORTED_LIST:
-                    qsort (numbers, nb_elements, sizeof (guint64), guint64cmp_desc);
+                    solve_reverse_sorted_list_challenge (&mt64,
+                                                         &checksum,
+                                                         parameters->reverse_sorted_list.nb_elements);
                     break;
-            }
-
-            SHA256_Init (&checksum);
-
-            gchar number_str[32];
-            for (i = 0; i < nb_elements; i++)
-            {
-                g_snprintf (number_str, 32, "%lu", numbers[i]);
-                SHA256_Update (&checksum, number_str, strlen (number_str));
+                case CSCOIN_CHALLENGE_SHORTEST_PATH:
+                    solve_shortest_path_challenge (&mt64,
+                                                   &checksum,
+                                                   parameters->shortest_path.grid_size,
+                                                   parameters->shortest_path.nb_blockers);
+                    break;
             }
 
             SHA256_Final (checksum_digest.digest, &checksum);
