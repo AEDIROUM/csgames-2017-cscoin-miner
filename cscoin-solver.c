@@ -1,5 +1,6 @@
 #include "cscoin-solver.h"
 #include "cscoin-mt64.h"
+#include "cscoin-heap64.h"
 
 #include <omp.h>
 #include <openssl/sha.h>
@@ -63,11 +64,13 @@ cscoin_solve_challenge (gint           challenge_id,
             guint16 prefix;
         } checksum_digest;
         guint64 numbers[nb_elements];
+        CSCoinHeap64 numbers_heap;
         guint nonce;
         gchar nonce_str[32];
         gint i;
 
         cscoin_mt64_init (&mt64);
+        cscoin_heap64_init (&numbers_heap, numbers, nb_elements, guint64cmp_asc);
 
         /* OpenMP partitionning */
         guint nonce_from, nonce_to;
@@ -93,7 +96,7 @@ cscoin_solve_challenge (gint           challenge_id,
 
             for (i = 0; i < nb_elements; i++)
             {
-                numbers[i] = cscoin_mt64_next_uint64 (&mt64);
+                cscoin_heap64_push (&numbers_heap, cscoin_mt64_next_uint64 (&mt64));
             }
 
             switch (challenge_type)
@@ -108,10 +111,11 @@ cscoin_solve_challenge (gint           challenge_id,
 
             SHA256_Init (&checksum);
 
+            guint64 number;
             gchar number_str[32];
-            for (i = 0; i < nb_elements; i++)
+            while ((number = cscoin_heap64_pop (&numbers_heap)) != CSCOIN_HEAP64_NULL)
             {
-                g_snprintf (number_str, 32, "%lu", numbers[i]);
+                g_snprintf (number_str, 32, "%lu", number);
                 SHA256_Update (&checksum, number_str, strlen (number_str));
             }
 
