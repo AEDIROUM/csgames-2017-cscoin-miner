@@ -14,10 +14,11 @@ openssl = dependency('openssl')
 
 solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'cscoin-mt64.c',
                      dependencies: [glib, gio, gomp, openssl])
+solver = declare_dependency(link_with: solver_lib, include_directories: include_directories('.'))
+solver_vapi = meson.get_compiler('vala').find_library('cscoin-solver', dirs: meson.current_source_dir())
 
 executable('cscoin-miner', 'cscoin-miner.vala',
-           dependencies: [posix, glib, gobject, soup, json_glib, openssl],
-           link_with: solver_lib)
+           dependencies: [posix, glib, gobject, soup, json_glib, openssl, solver, solver_vapi])
 
 subdir('contrib/mt19937-64')
 subdir('benchmarks')
