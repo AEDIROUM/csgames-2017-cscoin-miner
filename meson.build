@@ -12,7 +12,7 @@ soup = dependency('libsoup-2.4')
 json_glib = dependency('json-glib-1.0')
 openssl = dependency('openssl')
 
-solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'cscoin-mt64.c',
+solver_lib = library('cscoin-solver', 'cscoin-solver.c', 'cscoin-mt64.c', 'cscoin-challenge-type.c', 'cscoin-challenge-parameters.c',
                      dependencies: [glib, gio, gomp, openssl])
 solver = declare_dependency(link_with: solver_lib, include_directories: include_directories('.'))
 solver_vapi = meson.get_compiler('vala').find_library('cscoin-solver', dirs: meson.current_source_dir())
