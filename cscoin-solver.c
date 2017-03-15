@@ -74,14 +74,7 @@ enum _CSCoinShortestPathTileType
     CSCOIN_SHORTEST_PATH_TILE_TYPE_FRONTIER = 0x3
 };
 
-static guint8
-cscoin_shortest_path_build_tile (CSCoinShortestPathTileType a,
-                                 CSCoinShortestPathTileType b,
-                                 CSCoinShortestPathTileType c,
-                                 CSCoinShortestPathTileType d)
-{
-    return a | b << 2 | c << 4 | d << 6;
-}
+#define CSCOIN_SHORTEST_PATH_BUILD_TILE(a,b,c,d) (a | b << 2 | c << 4 | d << 6)
 
 typedef enum _CSCoinShortestPathDirection CSCoinShortestPathDirection;
 
@@ -393,7 +386,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
 
     /* cost for reaching exit located at (1, 1) in a 4x4 tile coming from up-left */
     cost = CSCOIN_SHORTEST_PATH_TILE_COST_PER_DIRECTION
-        [cscoin_shortest_path_build_tile (CSCOIN_SHORTEST_PATH_TILE_TYPE_BLANK,
+        [CSCOIN_SHORTEST_PATH_BUILD_TILE (CSCOIN_SHORTEST_PATH_TILE_TYPE_BLANK,
                                           CSCOIN_SHORTEST_PATH_TILE_TYPE_BLANK,
                                           CSCOIN_SHORTEST_PATH_TILE_TYPE_BLANK,
                                           CSCOIN_SHORTEST_PATH_TILE_TYPE_EXIT)]
