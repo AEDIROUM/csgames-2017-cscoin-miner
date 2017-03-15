@@ -3,7 +3,7 @@ using GLib;
 [CCode (lower_case_cprefix = "cscoin_")]
 namespace CSCoin
 {
-	Json.Node generate_command (string command_name, ...)
+	string generate_command (string command_name, ...)
 	{
 		var builder = new Json.Builder ();
 
@@ -103,7 +103,7 @@ namespace CSCoin
 				}
 				catch (Error err)
 				{
-					critical (err.message);
+					critical ("%s (%s, %d)", err.message, err.domain.to_string (), err.code);
 					return;
 				}
 
@@ -114,7 +114,7 @@ namespace CSCoin
 				         nonce);
 
 				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
-				ws.send_text (Json.to_string (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()), false));
+				ws.send_text (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()));
 			}, 1, true);
 
 			Cancellable? current_challenge_cancellable = null;
@@ -158,7 +158,7 @@ namespace CSCoin
 				critical (err.message);
 			});
 
-			ws.send_text (Json.to_string (generate_command ("get_current_challenge"), false));
+			ws.send_text (generate_command ("get_current_challenge"));
 		});
 
 		new MainLoop ().run ();
