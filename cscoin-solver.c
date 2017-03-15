@@ -73,25 +73,49 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // TODO
 }
 
-CSCoinChallengeType
-cscoin_challenge_type_from_string (gchar *str)
+static const GEnumValue
+CHALLENGE_TYPE_ENUM_VALUES[] =
 {
-    if (strcmp (str, "sorted_list") == 0)
+    {0, "CSCOIN_CHALLENGE_TYPE_SORTED_LIST",         "sorted_list"},
+    {1, "CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST", "reverse_sorted_list"},
+    {2, "CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH",       "shortest_path"},
+    NULL
+};
+
+static GType
+cscoin_challenge_type = 0;
+
+GType
+cscoin_challenge_type_get_type ()
+{
+    if (g_once_init_enter (&cscoin_challenge_type))
     {
-        return CSCOIN_CHALLENGE_TYPE_SORTED_LIST;
+        GType cscoin_challenge_type_value = g_enum_register_static ("CSCoinChallengeType", CHALLENGE_TYPE_ENUM_VALUES);
+        g_once_init_leave (&cscoin_challenge_type, cscoin_challenge_type_value);
     }
-    else if (strcmp (str, "reverse_sorted_list") == 0)
-    {
-        return CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST;
-    }
-    else if (strcmp (str, "shortest_path") == 0)
-    {
-        return CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH;
-    }
-    else
-    {
-        g_return_val_if_reached (0);
-    }
+
+    return cscoin_challenge_type;
+}
+
+G_DEFINE_BOXED_TYPE (CSCoinChallengeParameters,
+                     cscoin_challenge_parameters,
+                     cscoin_challenge_parameters_copy,
+                     cscoin_challenge_parameters_free);
+
+gpointer
+cscoin_challenge_parameters_copy (gpointer boxed)
+{
+    CSCoinChallengeParameters *ret = g_malloc (sizeof (CSCoinChallengeParameters));
+
+    memcpy (ret, boxed, sizeof (CSCoinChallengeParameters));
+
+    return ret;
+}
+
+void
+cscoin_challenge_parameters_free (gpointer boxed)
+{
+    g_free (boxed);
 }
 
 gchar *

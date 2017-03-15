@@ -5,8 +5,7 @@ namespace CSCoin
 	{
 		SORTED_LIST,
 		REVERSE_SORTED_LIST,
-		SHORTEST_PATH;
-		public static ChallengeType from_string (string str);
+		SHORTEST_PATH
 	}
 
 	public struct ChallengeParameters

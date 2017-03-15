@@ -82,49 +82,24 @@ namespace CSCoin
 				error (err.message);
 			}
 
-			Cancellable? current_challenge_cancellable = null;
-
-			var challenge_executor = new ThreadPool<Json.Object>.with_owned_data ((challenge) => {
-				var time_left = challenge.get_int_member ("time_left");
-				var challenge_id = challenge.get_int_member ("challenge_id");
-				var challenge_name = challenge.get_string_member ("challenge_name");
-				var last_solution_hash = challenge.get_string_member ("last_solution_hash");
-				var hash_prefix = challenge.get_string_member ("hash_prefix");
-				var parameters = challenge.get_member ("parameters");
-
-				message ("Received challenge #%lld: challenge-name: %s, last-solution-hash: %s, hash-prefix: %s, parameters: %s.",
-				         challenge_id,
-				         challenge_name,
-				         last_solution_hash,
-				         hash_prefix,
-				         Json.to_string (parameters, false));
+			var challenge_executor = new ThreadPool<Challenge>.with_owned_data ((challenge) => {
+				message ("Received challenge #%lld: challenge-name: %s, last-solution-hash: %s, hash-prefix: %s.",
+				         challenge.challenge_id,
+				         challenge.challenge_type.to_string (),
+				         challenge.last_solution_hash,
+				         challenge.hash_prefix);
 
 				var started = get_monotonic_time ();
-
-				var challenge_type       = ChallengeType.from_string (challenge_name);
-				var challenge_parameters = ChallengeParameters ();
-
-				switch (challenge_type)
-				{
-					case ChallengeType.SORTED_LIST:
-					case ChallengeType.REVERSE_SORTED_LIST:
-						challenge_parameters.nb_elements = (int) parameters.get_object ().get_int_member ("nb_elements");
-						break;
-					case ChallengeType.SHORTEST_PATH:
-						challenge_parameters.grid_size   = (int) parameters.get_object ().get_int_member ("grid_size");
-						challenge_parameters.nb_blockers = (int) parameters.get_object ().get_int_member ("nb_blockers");
-						break;
-				}
 
 				string nonce;
 				try
 				{
-					nonce = solve_challenge ((int) challenge_id,
-					                         challenge_type,
-					                         last_solution_hash,
-					                         hash_prefix,
-					                         challenge_parameters,
-					                         current_challenge_cancellable);
+					nonce = solve_challenge (challenge.challenge_id,
+					                         challenge.challenge_type,
+					                         challenge.last_solution_hash,
+					                         challenge.hash_prefix,
+					                         challenge.parameters,
+					                         challenge.cancellable);
 				}
 				catch (Error err)
 				{
@@ -133,26 +108,16 @@ namespace CSCoin
 				}
 
 				message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
-				         challenge_id,
+				         challenge.challenge_id,
 				         (get_monotonic_time () - started) / 1000,
-				         time_left,
+				         challenge.time_left,
 				         nonce);
 
-				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge_id);
+				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
 				ws.send_text (Json.to_string (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()), false));
 			}, 1, true);
 
-			ws.closing.connect (() => {
-				warning ("The connection is closing...");
-			});
-
-			ws.closed.connect (() => {
-				message ("The connection is closed and will be reestablished in a few...");
-			});
-
-			ws.error.connect ((err) => {
-				critical (err.message);
-			});
+			Cancellable? current_challenge_cancellable = null;
 
 			ws.message.connect ((type, payload) => {
 				var response = Json.from_string ((string) payload.get_data ()).get_object ();
@@ -163,13 +128,15 @@ namespace CSCoin
 					current_challenge_cancellable.cancel ();
 					current_challenge_cancellable = new Cancellable ();
 
+					var challenge = new Challenge.from_json_object (response, current_challenge_cancellable);
+
 					try
 					{
-						challenge_executor.add (response);
+						challenge_executor.add (challenge);
 					}
 					catch (ThreadError err)
 					{
-						critical ("Could not enqueue the challenge #%lld: %s", response.get_int_member ("challenge_id"), err.message);
+						critical ("Could not enqueue the challenge #%lld: %s", challenge.challenge_id, err.message);
 					}
 				}
 				else if (response.has_member ("error"))
@@ -178,7 +145,19 @@ namespace CSCoin
 				}
 			});
 
-			ws.send_text (Json.to_string (generate_command ("register_wallet", name: "diroum", key: "", signature: ""), false));
+			ws.closing.connect (() => {
+				warning ("The connection is closing, cancelling any running challenges...");
+				current_challenge_cancellable.cancel ();
+			});
+
+			ws.closed.connect (() => {
+				message ("The connection is closed and will be reestablished in a few...");
+			});
+
+			ws.error.connect ((err) => {
+				critical (err.message);
+			});
+
 			ws.send_text (Json.to_string (generate_command ("get_current_challenge"), false));
 		});
 
