@@ -7,18 +7,18 @@ G_DEFINE_BOXED_TYPE (CSCoinChallengeParameters,
                      cscoin_challenge_parameters_copy,
                      cscoin_challenge_parameters_free);
 
-gpointer
-cscoin_challenge_parameters_copy (gpointer boxed)
+CSCoinChallengeParameters *
+cscoin_challenge_parameters_copy (CSCoinChallengeParameters *self)
 {
     CSCoinChallengeParameters *ret = g_malloc (sizeof (CSCoinChallengeParameters));
 
-    memcpy (ret, boxed, sizeof (CSCoinChallengeParameters));
+    memcpy (ret, self, sizeof (CSCoinChallengeParameters));
 
     return ret;
 }
 
 void
-cscoin_challenge_parameters_free (gpointer boxed)
+cscoin_challenge_parameters_free (CSCoinChallengeParameters *self)
 {
-    g_free (boxed);
+    g_free (self);
 }
