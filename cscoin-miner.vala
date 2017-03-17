@@ -27,7 +27,7 @@ namespace CSCoin
 
 		builder.end_object ();
 
-		return builder.get_root ();
+		return Json.to_string (builder.get_root (), false);
 	}
 
 	string wallet_path;
