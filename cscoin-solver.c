@@ -427,6 +427,7 @@ cscoin_solve_challenge (gint                        challenge_id,
         } checksum_digest;
         guint nonce;
         gchar nonce_str[32];
+        GEnumClass *challenge_type_enum_class;
 
         cscoin_mt64_init (&mt64);
 
@@ -474,7 +475,9 @@ cscoin_solve_challenge (gint                        challenge_id,
                     break;
                 default:
                     /* cannot break from OpenMP section */
-                    g_critical ("Unknown challenge type %d, nothing will be performed.", challenge_type);
+                    challenge_type_enum_class = g_type_class_peek (CSCOIN_TYPE_CHALLENGE_TYPE);
+                    g_critical ("Unknown challenge type '%s', nothing will be performed.",
+                                g_enum_get_value (challenge_type_enum_class, challenge_type)->value_name);
             }
 
             SHA256_Final (checksum_digest.digest, &checksum);

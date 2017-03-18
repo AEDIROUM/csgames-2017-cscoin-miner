@@ -26,9 +26,9 @@ union _CSCoinChallengeParameters
 };
 
 #define CSCOIN_TYPE_CHALLENGE_PARAMETERS cscoin_challenge_parameters_get_type ()
-GType    cscoin_challenge_parameters_get_type ();
-gpointer cscoin_challenge_parameters_copy     (gpointer boxed);
-void     cscoin_challenge_parameters_free     (gpointer boxed);
+GType                       cscoin_challenge_parameters_get_type  ();
+CSCoinChallengeParameters * cscoin_challenge_parameters_copy      (CSCoinChallengeParameters *self);
+void                        cscoin_challenge_parameters_free      (CSCoinChallengeParameters *self);
 
 G_END_DECLS
 
