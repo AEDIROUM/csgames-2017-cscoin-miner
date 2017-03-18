@@ -53,7 +53,7 @@ namespace CSCoin
 
 		if (args.length < 2)
 		{
-			stderr.printf ("Usage: %s <url>\n", args[0]);
+			stderr.printf ("Usage: %s <ws_url>\n", args[0]);
 			return 1;
 		}
 
