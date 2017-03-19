@@ -30,16 +30,22 @@ namespace CSCoin
 		return Json.to_string (builder.get_root (), false);
 	}
 
+	/**
+	 * Path to the RSA wallet containing both public and private keys.
+	 */
 	string wallet_path;
 
 	const OptionEntry[] options =
 	{
-		{"wallet", 'w', 0, OptionArg.FILENAME, ref wallet_path, "Path to the wallet if it exists, otherwise it will be created", "FILE"},
+		{"wallet", 'w', 0, OptionArg.FILENAME, ref wallet_path, "Path to the wallet.", "FILE"},
 		{null}
 	};
 
 	int main (string[] args)
 	{
+		// default options
+		wallet_path = "default.pem";
+
 		try
 		{
 			var parser = new OptionContext ();
@@ -53,18 +59,23 @@ namespace CSCoin
 
 		if (args.length < 2)
 		{
-			stderr.printf ("Usage: %s <url>\n", args[0]);
+			stderr.printf ("Usage: %s [--wallet=<wallet_file>] <url>\n", args[0]);
 			return 1;
 		}
 
-		var wallet = new OpenSSL.RSA ();
+		Wallet wallet;
+		try
+		{
+			message ("Loading an existing wallet from '%s'...", wallet_path);
+			wallet = new Wallet.from_path (wallet_path);
+		}
+		catch (Error err)
+		{
+			stderr.printf ("Could not read the wallet at '%s'.", wallet_path);
+			return 1;
+		}
 
-		message ("Generating a random key pair...");
-		var e = new OpenSSL.Bignum ();
-		e.set_word (65537);
-		wallet.generate_key_ex (1024, e);
-
-		var wallet_id = Checksum.compute_for_string (ChecksumType.SHA256, wallet.d.bn2dec ());
+		message ("The 'wallet_id' is '%s'.", wallet.get_wallet_id ());
 
 		var ws_url = args[1];
 
@@ -114,7 +125,7 @@ namespace CSCoin
 				         nonce);
 
 				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
-				ws.send_text (generate_command ("submission", wallet_id: wallet_id, nonce: nonce.to_string ()));
+				ws.send_text (generate_command ("submission", wallet_id: wallet.get_wallet_id (), nonce: nonce.to_string ()));
 			}, 1, true);
 
 			Cancellable? current_challenge_cancellable = null;
@@ -157,6 +168,10 @@ namespace CSCoin
 			ws.error.connect ((err) => {
 				critical (err.message);
 			});
+
+			ws.send_text (generate_command ("register_wallet", name:      "AEDIROUM",
+			                                                   key:       wallet.get_key (),
+			                                                   signature: wallet.get_signature ()));
 
 			ws.send_text (generate_command ("get_current_challenge"));
 		});
