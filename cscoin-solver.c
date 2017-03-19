@@ -97,15 +97,15 @@ cscoin_solve_challenge (gint                        challenge_id,
             guint64 seed;
             guint16 prefix;
         } checksum_digest;
-        guint nonce;
+        guint64 nonce;
         gchar nonce_str[32];
         GEnumClass *challenge_type_enum_class;
 
         cscoin_mt64_init (&mt64);
 
         /* OpenMP partitionning */
-        guint nonce_from, nonce_to;
-        guint nonce_partition_size = G_MAXUINT / omp_get_num_threads ();
+        guint64 nonce_from, nonce_to;
+        guint64 nonce_partition_size = G_MAXUINT64 / omp_get_num_threads ();
         nonce_from = omp_get_thread_num () * nonce_partition_size;
         nonce_to   = nonce_from + nonce_partition_size;
 
@@ -116,7 +116,7 @@ cscoin_solve_challenge (gint                        challenge_id,
                 break;
             }
 
-            g_snprintf (nonce_str, 32, "%u", nonce);
+            g_snprintf (nonce_str, 32, "%lu", nonce);
 
             SHA256_Init (&checksum);
             SHA256_Update (&checksum, last_solution_hash, 64);
