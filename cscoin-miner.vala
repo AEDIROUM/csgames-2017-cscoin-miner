@@ -112,7 +112,11 @@ namespace CSCoin
 					                         challenge.parameters,
 					                         challenge.cancellable);
 
-					if (nonce != null)
+					if (nonce == null)
+					{
+						message ("Could not solve challenge #%d, waiting until the next one...", challenge.challenge_id);
+					}
+					else
 					{
 						message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
 						         challenge.challenge_id,
