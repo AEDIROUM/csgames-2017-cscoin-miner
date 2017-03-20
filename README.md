@@ -5,6 +5,8 @@ The ultimate CSCoin miner, at your service!
 ## Usage
 
 ```
+openssl genrsa -out <wallet_file> 1024
+
 cscoin-miner --wallet=<wallet_file> <ws_url>
 ```
 

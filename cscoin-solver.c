@@ -472,12 +472,13 @@ cscoin_solve_challenge (gint                        challenge_id,
                                                    &checksum,
                                                    parameters->shortest_path.grid_size,
                                                    parameters->shortest_path.nb_blockers);
-                    break;
+                    // break;
                 default:
                     /* cannot break from OpenMP section */
                     challenge_type_enum_class = g_type_class_peek (CSCOIN_TYPE_CHALLENGE_TYPE);
                     g_critical ("Unknown challenge type '%s', nothing will be performed.",
                                 g_enum_get_value (challenge_type_enum_class, challenge_type)->value_name);
+                    done = TRUE;
             }
 
             SHA256_Final (checksum_digest.digest, &checksum);
