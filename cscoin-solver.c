@@ -3,8 +3,11 @@
 
 #include <omp.h>
 #include <openssl/sha.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <astar.h>
 
 static gint
 guint64cmp_asc (const void *a, const void *b)
