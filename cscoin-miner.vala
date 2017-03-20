@@ -129,10 +129,13 @@ namespace CSCoin
 						                                              nonce:     nonce.to_string ()));
 					}
 				}
+				catch (IOError.CANCELLED err)
+				{
+					message ("Challenge #%lld have been cancelled, waiting until the next one...", challenge.challenge_id);
+				}
 				catch (Error err)
 				{
 					critical ("%s (%s, %d)", err.message, err.domain.to_string (), err.code);
-					return;
 				}
 			}, 1, true);
 
@@ -148,6 +151,11 @@ namespace CSCoin
 					current_challenge_cancellable = new Cancellable ();
 
 					var challenge = new Challenge.from_json_object (response, current_challenge_cancellable);
+
+					Timeout.add_seconds (challenge.time_left, () => {
+						current_challenge_cancellable.cancel ();
+						return Source.REMOVE;
+					});
 
 					try
 					{
