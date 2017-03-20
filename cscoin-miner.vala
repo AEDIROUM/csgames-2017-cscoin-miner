@@ -154,7 +154,7 @@ namespace CSCoin
 
 					Timeout.add_seconds (challenge.time_left, () => {
 						current_challenge_cancellable.cancel ();
-						return Source.REMOVE;
+						return false;
 					});
 
 					try
