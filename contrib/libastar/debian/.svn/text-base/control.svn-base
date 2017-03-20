@@ -1,0 +1,32 @@
+Source: libastar
+Priority: optional
+Maintainer: Alexios Chouchoulas <alexios@bedroomlan.org>
+Build-Depends: debhelper (>= 7), autotools-dev, libtool, autoconf, automake
+Standards-Version: 3.8.0
+Section: libs
+Homepage: http://www.bedroomlan.org/coding/libastar
+
+Package: libastar-dev
+Section: libdevel
+Architecture: any
+Depends: libastar0 (= ${binary:Version})
+Description: An implementation of the A* algorithm (development files)
+ An efficient implementation of the A* algorithm meant for 2D maps,
+ intended for use as a path-finding algorithm in games.
+ .
+ The algorithm is coded in C and includes a tightly integrated binary
+ heap for its open list. This allows A*-specific optimisations to
+ account for the way the algorithm works.
+
+Package: libastar0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Provides: libastar
+Description: An implementation of the A* algorithm
+ An efficient implementation of the A* algorithm meant for 2D maps,
+ intended for use as a path-finding algorithm in games.
+ .
+ The algorithm is coded in C and includes a tightly integrated binary
+ heap for its open list. This allows A*-specific optimisations to
+ account for the way the algorithm works.

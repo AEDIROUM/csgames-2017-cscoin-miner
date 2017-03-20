@@ -1,0 +1,24 @@
+K 10
+svn:ignore
+V 173
+confile
+config.guess
+m4
+configure
+missing
+libtoool
+stamp-h1
+config.h*
+ltmain.sh
+Makefile
+Makefile.in
+compile
+*.log
+depcomp
+install-sh
+libtool
+autom4te.cache
+config.*
+*stamp
+
+END

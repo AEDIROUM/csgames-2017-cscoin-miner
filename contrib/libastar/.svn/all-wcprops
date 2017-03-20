@@ -1,0 +1,69 @@
+K 26
+svn:wc:ra_dav:activity-url
+V 19
+/libastar/!svn/act/
+K 25
+svn:wc:ra_dav:version-url
+V 27
+/libastar/!svn/ver/24/trunk
+END
+configure.ac
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/libastar/!svn/ver/26/trunk/configure.ac
+END
+AUTHORS
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/libastar/!svn/ver/7/trunk/AUTHORS
+END
+INSTALL
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/libastar/!svn/ver/2/trunk/INSTALL
+END
+ChangeLog
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/libastar/!svn/ver/25/trunk/ChangeLog
+END
+COPYING
+K 25
+svn:wc:ra_dav:version-url
+V 34
+/libastar/!svn/ver/2/trunk/COPYING
+END
+Makefile.am
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/libastar/!svn/ver/26/trunk/Makefile.am
+END
+autogen.sh
+K 25
+svn:wc:ra_dav:version-url
+V 38
+/libastar/!svn/ver/14/trunk/autogen.sh
+END
+NEWS
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/libastar/!svn/ver/7/trunk/NEWS
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 33
+/libastar/!svn/ver/7/trunk/README
+END
+aclocal.m4
+K 25
+svn:wc:ra_dav:version-url
+V 37
+/libastar/!svn/ver/6/trunk/aclocal.m4
+END

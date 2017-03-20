@@ -1,0 +1,22 @@
+libastar (0.9-2) unstable; urgency=low
+
+  * Yet another minor Debian packaging fix.
+
+ -- Alexios Chouchoulas <alexios@bedroomlan.org>  Sun, 15 Feb 2009 11:43:28 +0200
+
+libastar (0.9-1) unstable; urgency=low
+
+  * Fixed a minor Debian packaging issue.
+
+ -- Alexios Chouchoulas <alexios@bedroomlan.org>  Sun, 15 Feb 2009 11:33:40 +0200
+
+libastar (0.9) unstable; urgency=low
+
+  * Initial code import.
+  * Major rewrite.
+  * Fixed various serious bugs in the original.
+  * Added profiling versions of the test programs.
+  * Debianised and fixed debianisation bugs.
+  * Fixed minor 64-bit bugs and build infrastructure issues.
+
+ -- Alexios Chouchoulas <alexios@bedroomlan.org>  Sun, 15 Feb 2009 11:25:19 +0200

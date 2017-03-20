@@ -1,0 +1,14 @@
+K 10
+svn:ignore
+V 107
+*.log
+libastar0
+*.postinst.debhelper
+*.postrm.debhelper
+tmp
+files
+*.substvars
+libastar-dev
+shlibs.local.ex
+
+END

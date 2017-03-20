@@ -1,0 +1,63 @@
+K 26
+svn:wc:ra_dav:activity-url
+V 19
+/libastar/!svn/act/
+K 25
+svn:wc:ra_dav:version-url
+V 31
+/libastar/!svn/ver/23/trunk/src
+END
+astar.h
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/libastar/!svn/ver/26/trunk/src/astar.h
+END
+libastar
+K 25
+svn:wc:ra_dav:version-url
+V 40
+/libastar/!svn/ver/16/trunk/src/libastar
+END
+libastar.pc.in
+K 25
+svn:wc:ra_dav:version-url
+V 46
+/libastar/!svn/ver/14/trunk/src/libastar.pc.in
+END
+astar_heap.c
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/libastar/!svn/ver/26/trunk/src/astar_heap.c
+END
+Makefile.am
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/libastar/!svn/ver/16/trunk/src/Makefile.am
+END
+astar_config.h.in
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/libastar/!svn/ver/14/trunk/src/astar_config.h.in
+END
+astar.c
+K 25
+svn:wc:ra_dav:version-url
+V 39
+/libastar/!svn/ver/26/trunk/src/astar.c
+END
+example.c
+K 25
+svn:wc:ra_dav:version-url
+V 41
+/libastar/!svn/ver/26/trunk/src/example.c
+END
+astar_heap.h
+K 25
+svn:wc:ra_dav:version-url
+V 44
+/libastar/!svn/ver/26/trunk/src/astar_heap.h
+END
