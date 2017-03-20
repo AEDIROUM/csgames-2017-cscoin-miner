@@ -102,7 +102,7 @@ namespace CSCoin
 
 				var started = get_monotonic_time ();
 
-				string nonce;
+				string? nonce;
 				try
 				{
 					nonce = solve_challenge (challenge.challenge_id,
@@ -111,21 +111,25 @@ namespace CSCoin
 					                         challenge.hash_prefix,
 					                         challenge.parameters,
 					                         challenge.cancellable);
+
+					if (nonce != null)
+					{
+						message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
+						         challenge.challenge_id,
+						         (get_monotonic_time () - started) / 1000,
+						         challenge.time_left,
+						         nonce);
+
+						message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
+						ws.send_text (generate_command ("submission", wallet_id: wallet.get_wallet_id (),
+						                                              nonce:     nonce.to_string ()));
+					}
 				}
 				catch (Error err)
 				{
 					critical ("%s (%s, %d)", err.message, err.domain.to_string (), err.code);
 					return;
 				}
-
-				message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
-				         challenge.challenge_id,
-				         (get_monotonic_time () - started) / 1000,
-				         challenge.time_left,
-				         nonce);
-
-				message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
-				ws.send_text (generate_command ("submission", wallet_id: wallet.get_wallet_id (), nonce: nonce.to_string ()));
 			}, 1, true);
 
 			Cancellable? current_challenge_cancellable = null;
