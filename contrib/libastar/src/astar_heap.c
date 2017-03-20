@@ -85,7 +85,7 @@ astar_heap_destroy (asheap_t * heap)
 }
 
 
-inline void
+void
 astar_heap_clear (asheap_t * heap)
 {
 	assert (heap != NULL);

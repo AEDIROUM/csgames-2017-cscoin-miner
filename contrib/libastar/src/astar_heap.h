@@ -31,16 +31,7 @@ extern "C" {
 
 
 #include <sys/time.h>
-#include "astar_config.h"
-
-
-#ifdef HAVE_STDINT_H
 #include <stdint.h>
-#else
-#  ifndef uint32_t
-#    error "stdint.h is not available, and the various intXX_t and uintXX_t types are undefined."
-#  endif // uint32_t
-#endif // HAVE_STDINT_H
 
 
 /*
@@ -101,7 +92,7 @@ asheap_t * astar_heap_new (uint32_t initial_length, uint32_t delta);
 void astar_heap_destroy (asheap_t * heap);
 
 
-inline void astar_heap_clear (asheap_t * heap);
+void astar_heap_clear (asheap_t * heap);
 
 
 uint32_t astar_heap_sizeof (asheap_t * heap);

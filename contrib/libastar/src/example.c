@@ -30,7 +30,7 @@ This is an example of how to use libastar.
 #include <string.h>
 #include <time.h>
 #include <assert.h>
-#include <libastar/astar.h>
+#include "astar.h"
 
 
 #define WIDTH  70
