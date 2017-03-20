@@ -8,7 +8,7 @@ glib = dependency('glib-2.0')
 gobject = dependency('gobject-2.0')
 gio = dependency('gio-2.0')
 gomp = meson.get_compiler('c').find_library('gomp')
-soup = dependency('libsoup-2.4')
+soup = dependency('libsoup-2.4', version: '>=2.50')
 json_glib = dependency('json-glib-1.0')
 openssl = dependency('openssl')
 
