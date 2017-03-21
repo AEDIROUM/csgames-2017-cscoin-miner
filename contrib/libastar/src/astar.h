@@ -159,7 +159,8 @@ typedef struct {
 	// this, or by setting get() and allowing the algorithm to only request the map
 	// squares it needs. The latter is preferable for large maps.
 
-	uint8_t (*get) (const uint32_t x, const uint32_t y);
+	uint8_t (*get) (const uint32_t x, const uint32_t y, void* user_data);
+    void* user_data;
 
 	///////////////////////////////////////////////////////////////////////////////
 	//
@@ -247,7 +248,7 @@ typedef struct {
 
 astar_t *
 astar_new (const uint32_t w, const uint32_t h,
-	   uint8_t (*get) (const uint32_t, const uint32_t),
+	   uint8_t (*get) (const uint32_t, const uint32_t, void*), void* user_data,
 	   uint32_t  (*heuristic) (const uint32_t, const uint32_t,
 				   const uint32_t, const uint32_t));
 	   

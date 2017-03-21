@@ -79,9 +79,19 @@ enum _CSCoinShortestPathTileType
 
 // #define CSCOIN_SHORTEST_PATH_TILE_INDEX_AT_POSITION(size, x, y) (y * size + x)
 
-guint8_t get_grid_cost (CSCoinShortestPathTileType grid, gint size, guint64 x, guint64 y)
+typedef struct _CSCoinShortestPathGrid CSCoinShortestPathGrid;
+
+struct _CSCoinShortestPathGrid
 {
-    return grid[y * size + x] == BLOCKER ? COST_BLOCKED : 1;
+    CSCoinShortestPathTileType *tiles;
+    gint                        size;
+};
+
+static guint8
+get_grid_cost (const guint32 x, const guint32 y, void* user_data)
+{
+    CSCoinShortestPathGrid *grid = user_data;
+    return grid->tiles[y * grid->size + x] == BLOCKER ? COST_BLOCKED : 1;
 }
 
 static void
@@ -162,7 +172,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
 
     astar_t * as;
 
-    as = astar_new (grid_size, grid_size, get_grid_cost, NULL);
+    CSCoinShortestPathGrid user_data = { .tiles = grid, .size = grid_size };
+    as = astar_new (grid_size, grid_size, get_grid_cost, &user_data, NULL);
 
     astar_set_origin (as, 0, 0);
     astar_set_movement_mode (as, DIR_CARDINAL);

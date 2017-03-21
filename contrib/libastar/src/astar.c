@@ -142,7 +142,7 @@ static const char *names[8] = { "N", "NE", "E", "SE",  "S", "SW",  "W", "NW" };
 
 // We use this to initialise a square_t payload.
 #define __get_square(as, s, x, y)                                 \
-        s->cost = (*as->get)(as->origin_x + x, as->origin_y + y); \
+        s->cost = (*as->get)(as->origin_x + x, as->origin_y + y, as->user_data); \
         s->g = 0;                                                 \
         s->h = 0;                                                 \
         s->f = 0;                                                 \
@@ -371,7 +371,8 @@ astar_update (astar_t * as, square_t * square, uint32_t gridofs, uint32_t g)
 astar_t *
 astar_new (const uint32_t w,
            const uint32_t h,
-           uint8_t (*get) (const uint32_t, const uint32_t),
+           uint8_t (*get) (const uint32_t, const uint32_t, void*),
+           void* user_data,
            uint32_t  (*heuristic) (const uint32_t, const uint32_t,
                                    const uint32_t, const uint32_t))
            
@@ -424,6 +425,7 @@ astar_new (const uint32_t w,
 
         // Set the map getter callback.
         as->get = get;
+        as->user_data = user_data;
 
         // Allocate data structures (initialise the grid to zeroes).
         uint32_t area = w * h;
