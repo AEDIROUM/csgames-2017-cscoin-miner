@@ -71,13 +71,11 @@ typedef enum _CSCoinShortestPathTileType CSCoinShortestPathTileType;
 
 enum _CSCoinShortestPathTileType
 {
-    BLANK   = 0b00,
-    START   = 0b01,
-    END     = 0b10,
-    BLOCKER = 0b11
+    BLANK   = 0,
+    START   = 1,
+    END     = 2,
+    BLOCKER = 3
 };
-
-// #define CSCOIN_SHORTEST_PATH_TILE_INDEX_AT_POSITION(size, x, y) (y * size + x)
 
 typedef struct _CSCoinShortestPathGrid CSCoinShortestPathGrid;
 
@@ -100,24 +98,24 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
                                gint        grid_size,
                                gint        nb_blockers)
 {
-    CSCoinShortestPathTileType grid[grid_size * grid_size];
+    CSCoinShortestPathTileType grid[grid_size][grid_size];
     guint64 x0, y0, x1, y1;
+    gint i, j;
 
-    for (int i = 0; i < grid_size * grid_size; i++) {
-        grid[i] = BLANK;
-    }
+    // initialize with blanks which is '0'
+    memset (grid, 0, sizeof (grid));
 
     // Borders
-    for (int i = 0; i < grid_size; i++)
+    for (i = 0; i < grid_size; i++)
     {
-        grid[i] = BLOCKER;
-        grid[(grid_size - 1) * grid_size + i] = BLOCKER;
+        grid[0][i]             = BLOCKER;
+        grid[grid_size - 1][i] = BLOCKER;
     }
 
-    for (int i = 1; i < grid_size - 1; i++)
+    for (j = 1; i < grid_size - 1; j++)
     {
-        grid[i * grid_size] = BLOCKER;
-        grid[i * grid_size + (grid_size - 1)] = BLOCKER;
+        grid[j][0]             = BLOCKER;
+        grid[j][grid_size - 1] = BLOCKER;
     }
 
     // Start/End
@@ -126,9 +124,9 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         x0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[y0 * grid_size + x0] == BLANK)
+        if (grid[y0][x0] == BLANK)
         {
-            grid[y0 * grid_size + x0] = START;
+            grid[y0][x0] = START;
             break;
         }
     }
@@ -138,32 +136,32 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         x1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[y1 * grid_size + x1] == BLANK)
+        if (grid[y1][x1] == BLANK)
         {
-            grid[y1 * grid_size + x1] = END;
+            grid[y1][x1] = END;
             break;
         }
     }
 
     // Blockers
-    for (int i = 0; i < nb_blockers; i++)
+    for (i = 0; i < nb_blockers; i++)
     {
         guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
         guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[row * grid_size + col] == BLANK)
+        if (grid[row][col] == BLANK)
         {
-            grid[row * grid_size + col] = BLOCKER;
+            grid[row][col] = BLOCKER;
         }
     }
 
     // Debugging
     /*
-    for (int i = 0; i < grid_size; i++)
+    for (i = 0; i < grid_size; i++)
     {
-        for (int j = 0; j < grid_size; j++)
+        for (j = 0; j < grid_size; j++)
         {
-            g_printf("%i", grid[i * grid_size + j]);
+            g_printf("%i", grid[j][i]);
         }
         g_printf("\n");
     }
