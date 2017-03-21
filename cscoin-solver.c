@@ -21,12 +21,17 @@ guint64cmp_desc (const void *a, const void *b)
     return *(guint64*) a > *(guint64*) b ? -1 : 1;
 }
 
-static void
+typedef gboolean (*CSCoinChallengeSolverFunc) (CSCoinMT64                *mt64,
+                                               SHA256_CTX                *checksum,
+                                               CSCoinChallengeParameters *parameters);
+
+static gboolean
 solve_sorted_list_challenge (CSCoinMT64 *mt64,
                              SHA256_CTX *checksum,
-                             gint        nb_elements)
+                             CSCoinChallengeParameters *parameters)
 {
     gint i;
+    gint nb_elements = parameters->sorted_list.nb_elements;
     guint64 numbers[nb_elements];
 
     for (i = 0; i < nb_elements; i++)
@@ -42,14 +47,17 @@ solve_sorted_list_challenge (CSCoinMT64 *mt64,
         g_snprintf (number_str, 32, "%lu", numbers[i]);
         SHA256_Update (checksum, number_str, strlen (number_str));
     }
+
+    return TRUE;
 }
 
-static void
-solve_reverse_sorted_list_challenge (CSCoinMT64 *mt64,
-                                     SHA256_CTX *checksum,
-                                     gint        nb_elements)
+static gboolean
+solve_reverse_sorted_list_challenge (CSCoinMT64                *mt64,
+                                     SHA256_CTX                *checksum,
+                                     CSCoinChallengeParameters *parameters)
 {
     gint i;
+    gint nb_elements = parameters->reverse_sorted_list.nb_elements;
     guint64 numbers[nb_elements];
 
     for (i = 0; i < nb_elements; i++)
@@ -65,6 +73,8 @@ solve_reverse_sorted_list_challenge (CSCoinMT64 *mt64,
         g_snprintf (number_str, 32, "%lu", numbers[i]);
         SHA256_Update (checksum, number_str, strlen (number_str));
     }
+
+    return TRUE;
 }
 
 typedef enum _CSCoinShortestPathTileType CSCoinShortestPathTileType;
@@ -92,12 +102,13 @@ get_grid_cost (const guint32 x, const guint32 y, void* user_data)
     return grid->tiles[y * grid->size + x] == BLOCKER ? COST_BLOCKED : 1;
 }
 
-static void
+static gboolean
 solve_shortest_path_challenge (CSCoinMT64 *mt64,
                                SHA256_CTX *checksum,
-                               gint        grid_size,
-                               gint        nb_blockers)
+                               CSCoinChallengeParameters *parameters)
 {
+    gint grid_size   = parameters->shortest_path.grid_size;
+    gint nb_blockers = parameters->shortest_path.nb_blockers;
     CSCoinShortestPathTileType grid[grid_size][grid_size];
     guint64 x0, y0, x1, y1;
     guint64 x, y;
@@ -215,19 +226,20 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         }
 
         astar_free_directions (directions);
+        astar_clear (&as);
 
         // Debugging
         //g_printf ("Route from (%d, %d) to (%d, %d). Result: %s (%d)\n",
         //        as.x0, as.y0,
         //        as.x1, as.y1,
         //        as.str_result, result);
+        return TRUE;
     }
     else
     {
-        g_assert_not_reached (); /* no route? how impossible! */
+        astar_clear (&as);
+        return FALSE;
     }
-
-    astar_clear (&as);
 }
 
 gchar *
@@ -242,8 +254,24 @@ cscoin_solve_challenge (gint                        challenge_id,
     gboolean done = FALSE;
     gchar *ret = NULL;
     guint16 hash_prefix_num;
+    CSCoinChallengeSolverFunc solver_func;
 
     hash_prefix_num = GUINT16_FROM_BE (strtol (hash_prefix, NULL, 16));
+
+    switch (challenge_type)
+    {
+        case CSCOIN_CHALLENGE_TYPE_SORTED_LIST:
+            solver_func = solve_sorted_list_challenge;
+            break;
+        case CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST:
+            solver_func = solve_reverse_sorted_list_challenge;
+            break;
+        case CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH:
+            solver_func = solve_shortest_path_challenge;
+            break;
+        default:
+            g_return_val_if_reached (NULL);
+    }
 
     #pragma omp parallel
     {
@@ -256,7 +284,6 @@ cscoin_solve_challenge (gint                        challenge_id,
         } checksum_digest;
         guint64 nonce;
         gchar nonce_str[32];
-        GEnumClass *challenge_type_enum_class;
 
         cscoin_mt64_init (&mt64);
 
@@ -284,38 +311,15 @@ cscoin_solve_challenge (gint                        challenge_id,
 
             SHA256_Init (&checksum);
 
-            switch (challenge_type)
+            if (solver_func (&mt64, &checksum, parameters))
             {
-                case CSCOIN_CHALLENGE_TYPE_SORTED_LIST:
-                    solve_sorted_list_challenge (&mt64,
-                                                 &checksum,
-                                                 parameters->sorted_list.nb_elements);
-                    break;
-                case CSCOIN_CHALLENGE_TYPE_REVERSE_SORTED_LIST:
-                    solve_reverse_sorted_list_challenge (&mt64,
-                                                         &checksum,
-                                                         parameters->reverse_sorted_list.nb_elements);
-                    break;
-                case CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH:
-                    solve_shortest_path_challenge (&mt64,
-                                                   &checksum,
-                                                   parameters->shortest_path.grid_size,
-                                                   parameters->shortest_path.nb_blockers);
-                     break;
-                default:
-                    /* cannot break from OpenMP section */
-                    challenge_type_enum_class = g_type_class_peek (CSCOIN_TYPE_CHALLENGE_TYPE);
-                    g_critical ("Unknown challenge type '%s', nothing will be performed.",
-                                g_enum_get_value (challenge_type_enum_class, challenge_type)->value_name);
+                SHA256_Final (checksum_digest.digest, &checksum);
+
+                if (hash_prefix_num == GUINT16_FROM_LE (checksum_digest.prefix))
+                {
                     done = TRUE;
-            }
-
-            SHA256_Final (checksum_digest.digest, &checksum);
-
-            if (hash_prefix_num == GUINT16_FROM_LE (checksum_digest.prefix))
-            {
-                done = TRUE;
-                ret = g_strdup (nonce_str);
+                    ret = g_strdup (nonce_str);
+                }
             }
         }
     }
