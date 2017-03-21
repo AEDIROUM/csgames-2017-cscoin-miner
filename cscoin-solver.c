@@ -100,10 +100,11 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
 {
     CSCoinShortestPathTileType grid[grid_size][grid_size];
     guint64 x0, y0, x1, y1;
+    guint64 x, y;
     gint i, j;
 
     // initialize with blanks which is '0'
-    memset (grid, 0, sizeof (grid));
+    memset (grid, BLANK, sizeof (grid));
 
     // Borders
     for (i = 0; i < grid_size; i++)
@@ -118,7 +119,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         grid[j][grid_size - 1] = BLOCKER;
     }
 
-    // Start/End
+    // Start
     for(;;)
     {
         y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
@@ -131,6 +132,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         }
     }
 
+    // End
     for(;;)
     {
         y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
@@ -146,51 +148,84 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Blockers
     for (i = 0; i < nb_blockers; i++)
     {
-        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
-        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[row][col] == BLANK)
+        if (grid[y][x] == BLANK)
         {
-            grid[row][col] = BLOCKER;
+            grid[y][x] = BLOCKER;
         }
     }
 
     // Debugging
     /*
-    for (i = 0; i < grid_size; i++)
+    g_printf("grid:\n");
+    for (j = 0; j < grid_size; j++)
     {
-        for (j = 0; j < grid_size; j++)
+        for (i = 0; i < grid_size; i++)
         {
-            g_printf("%i", grid[j][i]);
+            g_printf("%u ", grid[j][i]);
         }
         g_printf("\n");
     }
-    g_printf("\n");
     */
 
     astar_t as;
 
-    CSCoinShortestPathGrid user_data = { .tiles = grid, .size = grid_size };
+    CSCoinShortestPathGrid user_data = { .tiles = (CSCoinShortestPathTileType*) grid, .size = grid_size };
     astar_init (&as, grid_size, grid_size, get_grid_cost, &user_data, NULL);
 
     astar_set_origin (&as, 0, 0);
     astar_set_movement_mode (&as, DIR_CARDINAL);
 
-    // TODO Set cost
-    /*
-    astar_set_cost (as, DIR_NE, 100);
-    astar_set_cost (as, DIR_NW, 100);
-    astar_set_cost (as, DIR_SW, 100);
-    astar_set_cost (as, DIR_SE, 100);
-    */
+    astar_set_cost (&as, DIR_S, 1);
+    astar_set_cost (&as, DIR_N, 2);
+    astar_set_cost (&as, DIR_E, 3);
+    astar_set_cost (&as, DIR_W, 4);
 
     gint result = astar_run (&as, x0, y0, x1, y1);
 
-    // Debugging
-    g_printf ("Route from (%d, %d) to (%d, %d). Result: %s (%d)\n",
-            as.x0, as.y0,
-            as.x1, as.y1,
-            as.str_result, result);
+    if (result == ASTAR_FOUND && astar_have_route (&as))
+    {
+        guint32 num_steps;
+        direction_t *directions;
+        gchar number_str[32];
+
+        num_steps = astar_get_directions (&as, &directions);
+
+        x = x0;
+        y = y0;
+
+        /* entry */
+        g_snprintf (number_str, 32, "%lu", x);
+        SHA256_Update (checksum, number_str, strlen (number_str));
+        g_snprintf (number_str, 32, "%lu", y);
+        SHA256_Update (checksum, number_str, strlen (number_str));
+
+        /* hash all other coordinates including the exit */
+        for (i = 0; i < num_steps; i++)
+        {
+            x += astar_get_dx (&as, directions[i]);
+            y += astar_get_dy (&as, directions[i]);
+            //g_printf ("(%lu, %lu)", x, y);
+            g_snprintf (number_str, 32, "%lu", x);
+            SHA256_Update (checksum, number_str, strlen (number_str));
+            g_snprintf (number_str, 32, "%lu", y);
+            SHA256_Update (checksum, number_str, strlen (number_str));
+        }
+
+        astar_free_directions (directions);
+
+        // Debugging
+        //g_printf ("Route from (%d, %d) to (%d, %d). Result: %s (%d)\n",
+        //        as.x0, as.y0,
+        //        as.x1, as.y1,
+        //        as.str_result, result);
+    }
+    else
+    {
+        g_assert_not_reached (); /* no route? how impossible! */
+    }
 
     astar_clear (&as);
 }
@@ -266,7 +301,7 @@ cscoin_solve_challenge (gint                        challenge_id,
                                                    &checksum,
                                                    parameters->shortest_path.grid_size,
                                                    parameters->shortest_path.nb_blockers);
-                    // break;
+                     break;
                 default:
                     /* cannot break from OpenMP section */
                     challenge_type_enum_class = g_type_class_peek (CSCOIN_TYPE_CHALLENGE_TYPE);

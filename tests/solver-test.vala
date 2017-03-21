@@ -61,5 +61,11 @@ int main (string[] args)
 		assert (checksum.get_string ().has_prefix (hash_prefix));
 	});
 
+	Test.add_func ("/shortest_path", () => {
+		var hash_prefix = "768e";
+		var last_solution_hash = Checksum.compute_for_string (ChecksumType.SHA256, "test");
+		var nonce = CSCoin.solve_challenge (0, CSCoin.ChallengeType.SHORTEST_PATH, last_solution_hash, hash_prefix, CSCoin.ChallengeParameters () {nb_elements = 20});
+	});
+
 	return Test.run ();
 }
