@@ -380,6 +380,20 @@ astar_new (const uint32_t w,
         astar_t * as = (astar_t *) malloc (sizeof (astar_t));
         check_null (as, "astar_new(), allocating memory");
 
+        astar_init (as, w, h, get, user_data, heuristic);
+
+        return as;
+}
+
+void
+astar_init (astar_t        *as,
+            const uint32_t  w,
+            const uint32_t  h,
+            uint8_t (*get) (const uint32_t, const uint32_t, void*),
+            void* user_data,
+            uint32_t  (*heuristic) (const uint32_t, const uint32_t,
+                                    const uint32_t, const uint32_t))
+{
         // Force a reset.
         as->must_reset = 1;
 
@@ -436,7 +450,7 @@ astar_new (const uint32_t w,
                  as->w, as->h, as->heap->alloc,
                  sizeof(as) + astar_heap_sizeof(as->heap) + as->w * as->h * sizeof(square_t));
 
-        return as;
+
 }
 
 
@@ -559,7 +573,7 @@ astar_destroy (astar_t * as)
 void
 astar_init_grid (astar_t * as,
                  uint32_t origin_x, uint32_t origin_y,
-                 uint8_t(*get)(const uint32_t, const uint32_t))
+                 uint8_t(*get)(const uint32_t, const uint32_t, void*))
 {
         assert (as != NULL);
         assert (as->grid != NULL);

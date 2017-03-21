@@ -168,13 +168,13 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     g_printf("\n");
     */
 
-    astar_t * as;
+    astar_t as;
 
     CSCoinShortestPathGrid user_data = { .tiles = grid, .size = grid_size };
-    as = astar_new (grid_size, grid_size, get_grid_cost, &user_data, NULL);
+    astar_init (&as, grid_size, grid_size, get_grid_cost, &user_data, NULL);
 
-    astar_set_origin (as, 0, 0);
-    astar_set_movement_mode (as, DIR_CARDINAL);
+    astar_set_origin (&as, 0, 0);
+    astar_set_movement_mode (&as, DIR_CARDINAL);
 
     // TODO Set cost
     /*
@@ -184,15 +184,13 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     astar_set_cost (as, DIR_SE, 100);
     */
 
-    gint result = astar_run (as, x0, y0, x1, y1);
+    gint result = astar_run (&as, x0, y0, x1, y1);
 
     // Debugging
     g_printf ("Route from (%d, %d) to (%d, %d). Result: %s (%d)\n",
-            as->x0, as->y0,
-            as->x1, as->y1,
-            as->str_result, result);
-
-    astar_destroy (as);
+            as.x0, as.y0,
+            as.x1, as.y1,
+            as.str_result, result);
 }
 
 gchar *
