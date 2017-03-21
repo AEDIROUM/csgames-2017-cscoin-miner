@@ -191,6 +191,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
             as.x0, as.y0,
             as.x1, as.y1,
             as.str_result, result);
+
+    astar_clear (&as);
 }
 
 gchar *

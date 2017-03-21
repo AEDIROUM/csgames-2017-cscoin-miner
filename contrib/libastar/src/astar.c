@@ -453,6 +453,13 @@ astar_init (astar_t        *as,
 
 }
 
+void
+astar_clear (astar_t *as)
+{
+    astar_heap_destroy (as->heap);
+    free (as->grid);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 //
