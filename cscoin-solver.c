@@ -79,6 +79,11 @@ enum _CSCoinShortestPathTileType
 
 // #define CSCOIN_SHORTEST_PATH_TILE_INDEX_AT_POSITION(size, x, y) (y * size + x)
 
+guint8_t get_grid_cost (CSCoinShortestPathTileType grid, gint size, guint64 x, guint64 y)
+{
+    return grid[y * size + x] == BLOCKER ? COST_BLOCKED : 1;
+}
+
 static void
 solve_shortest_path_challenge (CSCoinMT64 *mt64,
                                SHA256_CTX *checksum,
@@ -86,6 +91,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
                                gint        nb_blockers)
 {
     CSCoinShortestPathTileType grid[grid_size * grid_size];
+    guint64 x0, y0, x1, y1;
 
     for (int i = 0; i < grid_size * grid_size; i++) {
         grid[i] = BLANK;
@@ -107,24 +113,24 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Start/End
     for(;;)
     {
-        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
-        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[row * grid_size + col] == BLANK)
+        if (grid[y0 * grid_size + x0] == BLANK)
         {
-            grid[row * grid_size + col] = START;
+            grid[y0 * grid_size + x0] = START;
             break;
         }
     }
 
     for(;;)
     {
-        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
-        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
-        if (grid[row * grid_size + col] == BLANK)
+        if (grid[y1 * grid_size + x1] == BLANK)
         {
-            grid[row * grid_size + col] = END;
+            grid[y1 * grid_size + x1] = END;
             break;
         }
     }
@@ -153,6 +159,31 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     }
     g_printf("\n");
     */
+
+    astar_t * as;
+
+    as = astar_new (grid_size, grid_size, get_grid_cost, NULL);
+
+    astar_set_origin (as, 0, 0);
+    astar_set_movement_mode (as, DIR_CARDINAL);
+
+    // TODO Set cost
+    /*
+    astar_set_cost (as, DIR_NE, 100);
+    astar_set_cost (as, DIR_NW, 100);
+    astar_set_cost (as, DIR_SW, 100);
+    astar_set_cost (as, DIR_SE, 100);
+    */
+
+    gint result = astar_run (as, x0, y0, x1, y1);
+
+    // Debugging
+    g_printf ("Route from (%d, %d) to (%d, %d). Result: %s (%d)\n",
+            as->x0, as->y0,
+            as->x1, as->y1,
+            as->str_result, result);
+
+    astar_destroy (as);
 }
 
 gchar *
