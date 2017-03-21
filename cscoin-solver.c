@@ -71,12 +71,13 @@ typedef enum _CSCoinShortestPathTileType CSCoinShortestPathTileType;
 
 enum _CSCoinShortestPathTileType
 {
-    CSCOIN_SHORTEST_PATH_TILE_TYPE_BLANK    = 0b00,
-    CSCOIN_SHORTEST_PATH_TILE_TYPE_ENTRY    = 0b01,
-    CSCOIN_SHORTEST_PATH_TILE_TYPE_EXIT     = 0b10,
-    CSCOIN_SHORTEST_PATH_TILE_TYPE_FRONTIER = 0b11
+    BLANK   = 0b00,
+    START   = 0b01,
+    END     = 0b10,
+    BLOCKER = 0b11
 };
 
+// #define CSCOIN_SHORTEST_PATH_TILE_INDEX_AT_POSITION(size, x, y) (y * size + x)
 
 static void
 solve_shortest_path_challenge (CSCoinMT64 *mt64,
@@ -84,6 +85,74 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
                                gint        grid_size,
                                gint        nb_blockers)
 {
+    CSCoinShortestPathTileType grid[grid_size * grid_size];
+
+    for (int i = 0; i < grid_size * grid_size; i++) {
+        grid[i] = BLANK;
+    }
+
+    // Borders
+    for (int i = 0; i < grid_size; i++)
+    {
+        grid[i] = BLOCKER;
+        grid[(grid_size - 1) * grid_size + i] = BLOCKER;
+    }
+
+    for (int i = 1; i < grid_size - 1; i++)
+    {
+        grid[i * grid_size] = BLOCKER;
+        grid[i * grid_size + (grid_size - 1)] = BLOCKER;
+    }
+
+    // Start/End
+    for(;;)
+    {
+        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+
+        if (grid[row * grid_size + col] == BLANK)
+        {
+            grid[row * grid_size + col] = START;
+            break;
+        }
+    }
+
+    for(;;)
+    {
+        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+
+        if (grid[row * grid_size + col] == BLANK)
+        {
+            grid[row * grid_size + col] = END;
+            break;
+        }
+    }
+
+    // Blockers
+    for (int i = 0; i < nb_blockers; i++)
+    {
+        guint64 row = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        guint64 col = cscoin_mt64_next_uint64 (mt64) % grid_size;
+
+        if (grid[row * grid_size + col] == BLANK)
+        {
+            grid[row * grid_size + col] = BLOCKER;
+        }
+    }
+
+    // Debugging
+    /*
+    for (int i = 0; i < grid_size; i++)
+    {
+        for (int j = 0; j < grid_size; j++)
+        {
+            g_printf("%i", grid[i * grid_size + j]);
+        }
+        g_printf("\n");
+    }
+    g_printf("\n");
+    */
 }
 
 gchar *
