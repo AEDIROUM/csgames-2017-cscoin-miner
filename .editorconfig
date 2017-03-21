@@ -1,0 +1,5 @@
+[*.c]
+indent_style=space
+
+[*.vala]
+indent_style=tab
