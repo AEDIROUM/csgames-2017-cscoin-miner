@@ -1,3 +1,5 @@
+#!/bin/sh
+
 export DOCKER_HOST="tcp://miners.2017.csgames.org:2376"
 export DOCKER_TLS_VERIFY=1
-export DOCKER_CERT_PATH="$HOME/.cscert/"
+export DOCKER_CERT_PATH="cscert/"
