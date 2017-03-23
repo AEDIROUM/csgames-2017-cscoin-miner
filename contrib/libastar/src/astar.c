@@ -699,20 +699,7 @@ _astar_main_notfound (astar_t * as)
 
         // The heap is empty.
         __debug("Heap is empty.\n");
-                
-        // We ran out of moves to check. There's no route, but record the best
-        // solution found so far.
-        if (as->have_best) {
-                as->bestofs = astar_find_best_compromise (as);
-                as->have_route = astar_mark_route (as, as->bestofs);
-                as->score = as->grid[as->bestofs].f;
-                as->have_route = 1;
-                __debug("Couldn't find it. Best route score %d (%d,%d).\n",
-                        as->grid[as->bestofs].g, as->bestx, as->besty);
-        } else {
-                __debug("Couldn't find it. No compromise route find, either.\n");
-        }
-        
+
         return 1;
 }
 
