@@ -1,13 +1,13 @@
 FROM ubuntu:latest
 
-RUN apt-get update; apt-get install -y \
-    libglib2.0-dev                     \
-    libjson-glib-dev                   \
-    libsoup2.4-dev                     \
-    libssl-dev                         \
-    python3-pip                        \
-    unzip                              \
-    valac                              \
+RUN apt-get update && apt-get install -y \
+    libglib2.0-dev                       \
+    libjson-glib-dev                     \
+    libsoup2.4-dev                       \
+    libssl-dev                           \
+    python3-pip                          \
+    unzip                                \
+    valac                                \
     && rm -rf /var/lib/apt/lists/*
 
 # Meson
@@ -19,7 +19,7 @@ RUN unzip /tmp/ninja-linux.zip -d /usr/local/bin
 
 ADD . .
 
-RUN mkdir build; CFLAGS='-march=native -Ofast' meson --buildtype=release build; ninja -C build
+RUN mkdir build && CFLAGS='-march=native -Ofast' meson --buildtype=release build && ninja -C build
 
 RUN openssl genrsa -out default.pem 1024
 
