@@ -124,7 +124,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         grid[grid_size - 1][i] = BLOCKER;
     }
 
-    for (j = 1; i < grid_size - 1; j++)
+    for (j = 1; j < grid_size - 1; j++)
     {
         grid[j][0]             = BLOCKER;
         grid[j][grid_size - 1] = BLOCKER;
@@ -133,8 +133,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Start
     for(;;)
     {
-        y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         x0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y0][x0] == BLANK)
         {
@@ -146,8 +146,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // End
     for(;;)
     {
-        y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         x1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y1][x1] == BLANK)
         {
@@ -159,8 +159,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Blockers
     for (i = 0; i < nb_blockers; i++)
     {
-        y = cscoin_mt64_next_uint64 (mt64) % grid_size;
         x = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        y = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y][x] == BLANK)
         {
