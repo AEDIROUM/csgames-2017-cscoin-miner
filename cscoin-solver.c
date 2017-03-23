@@ -117,6 +117,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // initialize with blanks which is '0'
     memset (grid, BLANK, sizeof (grid));
 
+    // X : COL Y : ROW
+    // grid[y][x]
     // Borders
     for (i = 0; i < grid_size; i++)
     {
@@ -133,8 +135,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Start
     for(;;)
     {
-        x0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         y0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x0 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y0][x0] == BLANK)
         {
@@ -146,8 +148,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // End
     for(;;)
     {
-        x1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
         y1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x1 = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y1][x1] == BLANK)
         {
@@ -159,8 +161,8 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     // Blockers
     for (i = 0; i < nb_blockers; i++)
     {
-        x = cscoin_mt64_next_uint64 (mt64) % grid_size;
         y = cscoin_mt64_next_uint64 (mt64) % grid_size;
+        x = cscoin_mt64_next_uint64 (mt64) % grid_size;
 
         if (grid[y][x] == BLANK)
         {
@@ -208,9 +210,9 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         y = y0;
 
         /* entry */
-        g_snprintf (number_str, 32, "%lu", x);
-        SHA256_Update (checksum, number_str, strlen (number_str));
         g_snprintf (number_str, 32, "%lu", y);
+        SHA256_Update (checksum, number_str, strlen (number_str));
+        g_snprintf (number_str, 32, "%lu", x);
         SHA256_Update (checksum, number_str, strlen (number_str));
 
         /* hash all other coordinates including the exit */
@@ -218,10 +220,10 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         {
             x += astar_get_dx (&as, directions[i]);
             y += astar_get_dy (&as, directions[i]);
-            //g_printf ("(%lu, %lu)", x, y);
-            g_snprintf (number_str, 32, "%lu", x);
-            SHA256_Update (checksum, number_str, strlen (number_str));
+            // g_printf ("(%lu, %lu)", y, x);
             g_snprintf (number_str, 32, "%lu", y);
+            SHA256_Update (checksum, number_str, strlen (number_str));
+            g_snprintf (number_str, 32, "%lu", x);
             SHA256_Update (checksum, number_str, strlen (number_str));
         }
 
