@@ -276,6 +276,7 @@ cscoin_solve_challenge (gint                        challenge_id,
             break;
         case CSCOIN_CHALLENGE_TYPE_SHORTEST_PATH:
             solver_func = solve_shortest_path_challenge;
+            return NULL;
             break;
         default:
             g_return_val_if_reached (NULL);
