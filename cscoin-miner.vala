@@ -163,32 +163,36 @@ namespace CSCoin
 				{
 					var challenge = new Challenge.from_json_object (response, new Cancellable ());
 
-					if (current_challenge != null && challenge.challenge_id == current_challenge.challenge_id)
+					if (current_challenge != null)
 					{
-						message ("Challenge #%lld is already executing.", current_challenge.challenge_id);
-					}
-					else
-					{
-						/* cancel any running challenge */
-						current_challenge.cancellable.cancel ();
-
-						try
+						if (challenge.challenge_id == current_challenge.challenge_id)
 						{
-							challenge_executor.add (challenge);
-						}
-						catch (ThreadError err)
-						{
-							critical ("Could not enqueue the challenge #%lld: %s", challenge.challenge_id, err.message);
+							message ("Challenge #%lld is already executing.", current_challenge.challenge_id);
 							return;
 						}
-
-						Timeout.add_seconds (challenge.time_left, () => {
-							challenge.cancellable.cancel ();
-							return false;
-						});
-
-						current_challenge = challenge;
+						else
+						{
+							/* cancel any running challenge */
+							current_challenge.cancellable.cancel ();
+						}
 					}
+
+					try
+					{
+						challenge_executor.add (challenge);
+					}
+					catch (ThreadError err)
+					{
+						critical ("Could not enqueue the challenge #%lld: %s", challenge.challenge_id, err.message);
+						return;
+					}
+
+					Timeout.add_seconds (challenge.time_left, () => {
+						challenge.cancellable.cancel ();
+						return false;
+					});
+
+					current_challenge = challenge;
 				}
 				else if (response.has_member ("error"))
 				{
