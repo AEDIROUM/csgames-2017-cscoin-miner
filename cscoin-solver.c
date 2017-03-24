@@ -171,6 +171,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     }
 
     // Debugging
+    /*
     g_printf("grid:\n");
     for (j = 0; j < grid_size; j++)
     {
@@ -180,6 +181,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         }
         g_printf("\n");
     }
+    */
 
     astar_t as;
 
@@ -191,14 +193,13 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
 
     /*
     astar_set_cost (&as, DIR_N, 10);
-    astar_set_cost (&as, DIR_W, 20);
-    astar_set_cost (&as, DIR_E, 30);
-    astar_set_cost (&as, DIR_S, 40);
+    astar_set_cost (&as, DIR_W, 11);
+    astar_set_cost (&as, DIR_E, 12);
+    astar_set_cost (&as, DIR_S, 13);
     */
-    /*
-    astar_set_steering_penalty (&as, 10);
-    astar_set_heuristic_factor (&as, 10);
-    */
+
+    // astar_set_steering_penalty (&as, 10);
+    // astar_set_heuristic_factor (&as, 10);
     // astar_set_max_cost (100);
 
     gint result = astar_run (&as, x0, y0, x1, y1);
@@ -225,7 +226,7 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
         {
             x += astar_get_dx (&as, directions[i]);
             y += astar_get_dy (&as, directions[i]);
-            g_printf ("(%lu, %lu)", y, x);
+            // g_printf ("(%lu, %lu)", y, x);
             g_snprintf (number_str, 32, "%lu", y);
             SHA256_Update (checksum, number_str, strlen (number_str));
             g_snprintf (number_str, 32, "%lu", x);

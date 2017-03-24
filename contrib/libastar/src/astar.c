@@ -802,12 +802,14 @@ _astar_eval_g (astar_t * as, square_t * from, square_t * to, int rdir)
         // Penalise direction changes. Note: 'dir' comes to us reversed (first
         // to second square). Only do this for moves other than first one (with
         // 'from' is at the starting point).
+        /*
         if ((getofs (as, from) != as->ofs0) && (from->dir != dir)) {
                 //__debug ("CHANGE OF DIRECTION: %s -> %s: ",
                 //       names[REVERSE_DIR(from->dir)], names[dir]);
                 //__debug_square (as, from);
                 g += as->steering_penalty;
         }
+        */
 
         return g;
 }
@@ -951,7 +953,7 @@ astar_main_loop (astar_t * as)
                 // Odd-numbered directions are the non-cardinal
                 // ones. If the movement mode is along the cardinal
                 // directions, skip odd directions.
-                if ((as->move_8way == 0) && (dir & 1)) continue;
+                //if ((as->move_8way == 0) && (dir & 1)) continue;
 
                         // Ensure we're still within the bounds of the search
                         // grid. As the co-ordinates are all unsigned, reaching
