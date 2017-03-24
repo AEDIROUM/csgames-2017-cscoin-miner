@@ -1,0 +1,4 @@
+[*.h]
+indent_style=tab
+[*.c]
+trim_trailing_whitespace=false
