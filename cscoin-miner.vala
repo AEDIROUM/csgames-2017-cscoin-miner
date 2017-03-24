@@ -59,7 +59,7 @@ namespace CSCoin
 
 		if (args.length < 2)
 		{
-			stderr.printf ("Usage: %s [--wallet=<wallet_file>] <url>\n", args[0]);
+			stderr.printf ("Usage: %s [--wallet=<wallet_file>] <ws_url>\n", args[0]);
 			return 1;
 		}
 
@@ -77,93 +77,117 @@ namespace CSCoin
 
 		message ("The 'wallet_id' is '%s'.", wallet.get_wallet_id ());
 
-		var ws_url = args[1];
+		loop.begin (args[1], wallet);
 
+		new MainLoop ().run ();
+
+		return 0;
+	}
+
+	async void loop (string ws_url, Wallet wallet)
+	{
 		var ws_session = new Soup.Session ();
-		var ws_message = new Soup.Message ("GET", ws_url);
 
-		ws_session.websocket_connect_async.begin (ws_message, null, null, null, (obj, res) => {
-			Soup.WebsocketConnection ws;
+		Soup.WebsocketConnection ws = null;
+
+		var challenge_executor = new ThreadPool<Challenge>.with_owned_data ((challenge) => {
+			message ("Received challenge #%lld: challenge-name: %s, last-solution-hash: %s, hash-prefix: %s.",
+			         challenge.challenge_id,
+			         challenge.challenge_type.to_string (),
+			         challenge.last_solution_hash,
+			         challenge.hash_prefix);
+
+			var started = get_monotonic_time ();
+
+			string? nonce;
 			try
 			{
-				ws = ws_session.websocket_connect_async.end (res);
+				nonce = solve_challenge (challenge.challenge_id,
+				                         challenge.challenge_type,
+				                         challenge.last_solution_hash,
+				                         challenge.hash_prefix,
+				                         challenge.parameters,
+				                         challenge.cancellable);
+
+				if (nonce == null)
+				{
+					message ("Could not solve challenge #%d, waiting until the next one...", challenge.challenge_id);
+				}
+				else
+				{
+					message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
+					         challenge.challenge_id,
+					         (get_monotonic_time () - started) / 1000,
+					         challenge.time_left,
+					         nonce);
+
+					message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
+					ws.send_text (generate_command ("submission", wallet_id: wallet.get_wallet_id (),
+					                                              nonce:     nonce.to_string ()));
+				}
+			}
+			catch (IOError.CANCELLED err)
+			{
+				message ("Challenge #%lld have been cancelled, waiting until the next one...", challenge.challenge_id);
 			}
 			catch (Error err)
 			{
-				error (err.message);
+				critical ("%s (%s, %d)", err.message, err.domain.to_string (), err.code);
+			}
+		}, 1, true);
+
+		Challenge? current_challenge = null;
+
+		do
+		{
+			message ("Establishing a connection with the authority...");
+
+			try
+			{
+				ws = yield ws_session.websocket_connect_async (new Soup.Message ("GET", ws_url), null, null, null);
+			}
+			catch (Error err)
+			{
+				critical (err.message);
+				Idle.add (loop.callback);
+				yield;
+				continue;
 			}
 
-			var challenge_executor = new ThreadPool<Challenge>.with_owned_data ((challenge) => {
-				message ("Received challenge #%lld: challenge-name: %s, last-solution-hash: %s, hash-prefix: %s.",
-				         challenge.challenge_id,
-				         challenge.challenge_type.to_string (),
-				         challenge.last_solution_hash,
-				         challenge.hash_prefix);
-
-				var started = get_monotonic_time ();
-
-				string? nonce;
-				try
-				{
-					nonce = solve_challenge (challenge.challenge_id,
-					                         challenge.challenge_type,
-					                         challenge.last_solution_hash,
-					                         challenge.hash_prefix,
-					                         challenge.parameters,
-					                         challenge.cancellable);
-
-					if (nonce == null)
-					{
-						message ("Could not solve challenge #%d, waiting until the next one...", challenge.challenge_id);
-					}
-					else
-					{
-						message ("Solved challenge #%lld in %lldms (%lds was given) with nonce '%s'.",
-						         challenge.challenge_id,
-						         (get_monotonic_time () - started) / 1000,
-						         challenge.time_left,
-						         nonce);
-
-						message ("Submitting nonce '%s' for challenge #%lld to authority...", nonce, challenge.challenge_id);
-						ws.send_text (generate_command ("submission", wallet_id: wallet.get_wallet_id (),
-						                                              nonce:     nonce.to_string ()));
-					}
-				}
-				catch (IOError.CANCELLED err)
-				{
-					message ("Challenge #%lld have been cancelled, waiting until the next one...", challenge.challenge_id);
-				}
-				catch (Error err)
-				{
-					critical ("%s (%s, %d)", err.message, err.domain.to_string (), err.code);
-				}
-			}, 1, true);
-
-			Cancellable? current_challenge_cancellable = null;
+			message ("Established a connection with the authority!");
 
 			ws.message.connect ((type, payload) => {
 				var response = Json.from_string ((string) payload.get_data ()).get_object ();
 
 				if (response.has_member ("challenge_id"))
 				{
-					/* cancel any running challenge */
-					current_challenge_cancellable.cancel ();
-					current_challenge_cancellable = new Cancellable ();
+					var challenge = new Challenge.from_json_object (response, new Cancellable ());
 
-					var challenge = new Challenge.from_json_object (response, current_challenge_cancellable);
-
-					Timeout.add_seconds (challenge.time_left, () => {
-						current_challenge_cancellable.cancel ();
-						return false;
-					});
-
-					try
+					if (current_challenge != null && challenge.challenge_id == current_challenge.challenge_id)
 					{
-						challenge_executor.add (challenge);
+						message ("Challenge #%lld is already executing.", current_challenge.challenge_id);
 					}
-					catch (ThreadError err)
+					else
 					{
-						critical ("Could not enqueue the challenge #%lld: %s", challenge.challenge_id, err.message);
+						/* cancel any running challenge */
+						current_challenge.cancellable.cancel ();
+
+						try
+						{
+							challenge_executor.add (challenge);
+						}
+						catch (ThreadError err)
+						{
+							critical ("Could not enqueue the challenge #%lld: %s", challenge.challenge_id, err.message);
+							return;
+						}
+
+						Timeout.add_seconds (challenge.time_left, () => {
+							challenge.cancellable.cancel ();
+							return false;
+						});
+
+						current_challenge = challenge;
 					}
 				}
 				else if (response.has_member ("error"))
@@ -174,11 +198,11 @@ namespace CSCoin
 
 			ws.closing.connect (() => {
 				warning ("The connection is closing, cancelling any running challenges...");
-				current_challenge_cancellable.cancel ();
 			});
 
 			ws.closed.connect (() => {
 				message ("The connection is closed and will be reestablished in a few...");
+				Idle.add (loop.callback);
 			});
 
 			ws.error.connect ((err) => {
@@ -190,10 +214,9 @@ namespace CSCoin
 			                                                   signature: wallet.get_signature ()));
 
 			ws.send_text (generate_command ("get_current_challenge"));
-		});
 
-		new MainLoop ().run ();
-
-		return 0;
+			yield;
+		}
+		while (true);
 	}
 }
