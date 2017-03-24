@@ -82,10 +82,16 @@ FILE * __astar_debugfp = NULL;
 #define CC 10 // Cardinal direction cost
 #define CD 14 // Diagonal direction cost int(10*sqrt(2))
 
+static const int diro[4] = {4, 0, 2, 6};//, 5, 1, 3, 7}; // Direction order
+
 //                                N    NE    E    SE     S    SW     W    NW
 static const int32_t _dx[8] = {   0,    1,   1,    1,    0,   -1,   -1,   -1 };
 static const int32_t _dy[8] = {  -1,   -1,   0,    1,    1,    1,    0,   -1 };
 static const int32_t _mc[8] = {  CC,   CD,  CC,   CD,   CC,   CD,   CC,   CD };
+//                                W    NE    E    SE     N    SW     S    NW
+//static const int32_t _dx[8] = {  -1,    1,   1,    1,    0,   -1,    0,   -1 };
+//tatic const int32_t _dy[8] = {   0,   -1,   0,    1,   -1,    1,    1,   -1 };
+//static const int32_t _mc[8] = {  CC,   CD,  CC,   CD,   CC,   CD,   CC,   CD };
 #if defined(ASTAR_DEBUG) || defined(TEST_ASTAR)
 static const char * dirs[8] = { "N", "\'", "E",  ".",  "S",  "/",  "W",  "`" };
 static const char *names[8] = { "N", "NE", "E", "SE",  "S", "SW",  "W", "NW" };
@@ -936,7 +942,8 @@ astar_main_loop (astar_t * as)
                 // The order doesn't matter, so start at num_dirs - 1 and step
                 // down to 0. This is faster (simpler loop conditionals)
 
-                for (dir = 0; dir < NUM_DIRS; dir++) {
+                for (int i = 0; i < 4; i++) {
+                        dir = diro[i];
                         uint32_t adj_x = x + as->dx[dir];
                         uint32_t adj_y = y + as->dy[dir];
 
