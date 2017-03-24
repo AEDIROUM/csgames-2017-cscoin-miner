@@ -1,4 +1,4 @@
-/* 
+/*
 
 $Id
 
@@ -262,7 +262,7 @@ astar_add_open (astar_t * as, square_t * s, uint32_t gridofs, uint32_t g, uint32
 
         // As per A* algorithm.
         uint32_t f = g + h;
-        
+
         __debug("\t+O Adding (%d,%d) (ofs=%d, f=%u, g=%u, h=%u) to open list.\n",
                 gridofs % as->w, gridofs / as->w, gridofs, f, g, h);
 
@@ -296,7 +296,7 @@ astar_add_closed (astar_t * as, square_t * s, uint32_t gridofs)
         // Side-effect of the A* algorithm. Can't go on the closed
         // list if it wasn't on the open list before.
         assert (s->open == 1);
-        
+
         // Statistics
         as->open--;
         as->closed++;
@@ -304,7 +304,7 @@ astar_add_closed (astar_t * as, square_t * s, uint32_t gridofs)
         // Remove square's membership in the open list and add it to the closed list.
         s->open = 0;
         s->closed = 1;
-        
+
         // Check to see if this is the best move so far. If a solution can't be
         // found, we can use this information (best score and best square) to
         // produce a compromise.
@@ -375,7 +375,7 @@ astar_new (const uint32_t w,
            void* user_data,
            uint32_t  (*heuristic) (const uint32_t, const uint32_t,
                                    const uint32_t, const uint32_t))
-           
+
 {
         astar_t * as = (astar_t *) malloc (sizeof (astar_t));
         check_null (as, "astar_new(), allocating memory");
@@ -421,13 +421,13 @@ astar_init (astar_t        *as,
         as->loops = 0;
         as->result = 0;
         as->str_result = NULL;
-        
+
         // Store default configuration: costs and deltas. This allows
         // reconfiguration by the advanced user.
         as->origin_x = 0;
         as->origin_y = 0;
         as->origin_set = 0;
-	as->move_8way = 1;
+        as->move_8way = 1;
         memcpy (as->dx, _dx, sizeof(as->dx));
         memcpy (as->dy, _dy, sizeof(as->dy)); 
         memcpy (as->mc, _mc, sizeof(as->mc));
@@ -495,8 +495,8 @@ astar_set_timeout (astar_t *as, const uint32_t timeout)
 void
 astar_set_movement_mode (astar_t * as, int mode)
 {
-	assert (as != NULL);
-	as->move_8way = mode & 1;
+        assert (as != NULL);
+        as->move_8way = mode & 1;
 }
 
 
@@ -550,7 +550,7 @@ astar_reset (astar_t * as)
         // Initialise internal/statistics fields.
         as->steps = 0;
         as->score = 0;
-	set_result (as, ASTAR_NOTHING);
+        set_result (as, ASTAR_NOTHING);
         as->usecs = 0;
         as->gets = 0;
         as->bestofs = 0;
@@ -592,7 +592,7 @@ astar_init_grid (astar_t * as,
 
         register uint32_t x, y;
         register square_t * square = as->grid;
-        
+
         for (y = 0; y < as->h; y++) {
                 for (x = 0; x < as->w; x++) {
                         __get_square(as, square, x, y);
@@ -643,7 +643,7 @@ astar_mark_route (astar_t *as, uint32_t ofs)
         square_t * s = &as->grid[ofs];
         uint32_t dir;
 
-	s->route = 1;
+        s->route = 1;
         as->steps = 0;
         while (1) {
                 // Find the current square and the direction of its parent.
@@ -662,17 +662,17 @@ astar_mark_route (astar_t *as, uint32_t ofs)
                 }
                 __debug ("PARENT OFS = %u\n", ofs);
                 s = &as->grid [ofs];
-		s->route = 1;
-                
+                s->route = 1;
+
                 __debug ("ROUTE STEP %d: ", as->steps);
                 __debug_square (as, s);
 
                 s->rdir = REVERSE_DIR(dir); // Opposite direction to dir.
                 as->steps++;
-		
-		if (ofs == as->ofs0) {
-			break;
-		}
+
+                if (ofs == as->ofs0) {
+                    break;
+                }
         }
 
 /*
@@ -754,7 +754,7 @@ _astar_main_timeout (astar_t * as)
 
         // Timeout expired?
         if (d < as->timeout) return 0;
-        
+
         // Nope, we ran out of moves to check. There's no route.
         if (as->have_best) {
                 as->bestofs = astar_find_best_compromise (as);
@@ -791,7 +791,7 @@ _astar_eval_g (astar_t * as, square_t * from, square_t * to, int rdir)
 
         // Add cost of new square.
         g += to->cost;
-        
+
         // Penalise direction changes. Note: 'dir' comes to us reversed (first
         // to second square). Only do this for moves other than first one (with
         // 'from' is at the starting point).
@@ -817,16 +817,16 @@ _astar_main_maybe_update_square (astar_t * as, square_t * square,
 {
         // This square has already been considered. Is this a
         // better path to it (lower G)?
-        
+
         uint32_t g = _astar_eval_g (as, square, adj, dir);
-        
+
         if (g < adj->g) {
                 __debug ("\t...on the open list AND A BETTER CHOICE (new g=%u, old g=%u).\n",
                          g, adj->g);
                 // This is a better route to this square. Replace
                 // the routing information stored on it.
                 astar_update (as, adj, adj_ofs, g);
-                
+
                 // Update the direction.
                 adj->dir = REVERSE_DIR(dir);
         } else {
@@ -933,17 +933,17 @@ astar_main_loop (astar_t * as)
                 //
                 ///////////////////////////////////////////////////////////////
 
-		// The order doesn't matter, so start at num_dirs - 1 and step
-		// down to 0. This is faster (simpler loop conditionals)
+                // The order doesn't matter, so start at num_dirs - 1 and step
+                // down to 0. This is faster (simpler loop conditionals)
 
                 for (dir = 0; dir < NUM_DIRS; dir++) {
                         uint32_t adj_x = x + as->dx[dir];
                         uint32_t adj_y = y + as->dy[dir];
 
-			// Odd-numbered directions are the non-cardinal
-			// ones. If the movement mode is along the cardinal
-			// directions, skip odd directions.
-			if ((as->move_8way == 0) && (dir & 1)) continue;
+                // Odd-numbered directions are the non-cardinal
+                // ones. If the movement mode is along the cardinal
+                // directions, skip odd directions.
+                if ((as->move_8way == 0) && (dir & 1)) continue;
 
                         // Ensure we're still within the bounds of the search
                         // grid. As the co-ordinates are all unsigned, reaching
@@ -1075,7 +1075,7 @@ astar_run (astar_t *as,
 
         // At the end of this, the grid will initialised (perhaps partially).
         as->grid_init = 1;
-        
+
         // Configure.
         as->x0 = x0;
         as->y0 = y0;
@@ -1135,10 +1135,10 @@ astar_get_directions (astar_t *as, direction_t ** directions)
         assert (as->heap != NULL);
         assert (directions != NULL);
 
-	if (!as->have_route) {
-		__debug ("astar_get_directions(): No route exists, nothing to return.\n");
-		return 0;
-	}
+        if (!as->have_route) {
+            __debug ("astar_get_directions(): No route exists, nothing to return.\n");
+            return 0;
+        }
 
         *directions = (direction_t *) malloc (as->steps + 1 * sizeof (direction_t));
         uint8_t * dp = *directions;
@@ -1146,8 +1146,8 @@ astar_get_directions (astar_t *as, direction_t ** directions)
         // Now form the array of directions. Start at the beginning, and
         // reverse the direction of the A* path to find the real a-to-b path.
         uint32_t ofs = as->ofs0;
-	uint32_t i;
-	for (i = 0; i < as->steps; i++) {
+        uint32_t i;
+        for (i = 0; i < as->steps; i++) {
                 // Obtain the direction
                 uint32_t dir = as->grid[ofs].rdir;
                 // Store the direction.
@@ -1166,8 +1166,8 @@ astar_get_directions (astar_t *as, direction_t ** directions)
 void
 astar_free_directions (direction_t * directions)
 {
-	assert (directions != NULL);
-	free (directions);
+        assert (directions != NULL);
+        free (directions);
 }
 
 
@@ -1407,7 +1407,7 @@ main (int argc, char ** argv)
         //astar_set_max_cost (200);
         astar_set_steering_penalty (as, 20);
         //astar_set_heuristic_factor(10);
-	astar_set_movement_mode (as, 4);
+        astar_set_movement_mode (as, 4);
 
         // Test trivial results.
         result_code = astar_run (as, 0,0, 0,0);
@@ -1422,95 +1422,95 @@ main (int argc, char ** argv)
         printf("Verified: trivially impossible condition (EMBEDDED) is detected.\n");
 
         //astar_set_timeout (as, 1000);
-	
-	for (rep = 0; rep < NUM_REPS; rep++) {
-		for (i = 0; i < 40; i++) {
-			// Run A*.
-			
-			// This is only needed for debugging, so the whole map is
-			// visible. Normally, the algorithm only initialises the map grids it
-			// needs, when it needs them.
-			//astar_init_grid (as, 0,0, grid_get);
-			
-			printf("Running A* (%d,%d) -> (%d,%d)\n", 1,i, 39,39-i);
-			result_code = astar_run (as, 1,i, 39,39-i);
-			printf("Result: %d (%s)\n", as->result, as->str_result);
-			
-			astar_print (as);
-			assert (result_code == as->result);
-			printf("Verified: result code returned and stored.\n");
-			//assert (result_code == ASTAR_FOUND);
-			//printf("Verified: path found.\n");
-			
-			printf("Result code:     %u\n", as->result);
-			printf("Run for:         %u.%03u ms\n", as->usecs / 1000, as->usecs % 1000);
-			printf("Steps:           %u\n", as->steps);
-			printf("Score:           %u\n", as->score);
-			printf("Map get()s:      %u of %u (%d%%)\n", as->gets, as->w * as->h, as->gets * 100 / (as->w * as->h));
-			printf("Route available: %d\n", as->have_route);
-			
-			// No route, no checking!
-			if (!as->have_route) continue;
-			
-			// Verify the directions.
-			uint8_t * directions;
-			uint32_t route_steps = astar_get_directions (as, &directions);
-			uint32_t i, x = as->x0, y=as->y0;
-			uint32_t list_steps = 0;
-			
-			if (route_steps) {
-				printf("Verifying directions. %d step(s) returned.\n", route_steps);
-				assert (route_steps == as->steps);
-				printf("Verified: path steps returned and stored.\n");
-				if (list_steps) {
-					printf("\tStep ---: start at (%d,%d)\n", x, y);
-				}
-				for (i=0; directions[i] != DIR_END; i++) {
-					uint8_t dir = directions[i];
-					
-					// End of directions?
-					if (directions[i] == DIR_END) break;
-					x += as->dx[dir];
-					y += as->dy[dir];
-					if (list_steps) {
-						printf("\tStep %3d: %d (%s), now at (%d,%d)\n",
-						       i + 1, directions[i], names[directions[i]],
-						       x, y);
-					}
-					// Make sure only the lower 3 bits are used.
-					assert ((directions[i] & 0xf8) == 0);
-					
-					// Ensure this is really part of the route.
-					if ((x != as->x1) && (y != as->y1)) {
-						//printf("\t\t*** ofs=%u (%d,%d), route=%u\n",
-						//       mkofs(as,x,y), x,y, as->grid[mkofs(as, x, y)].route);
-						assert (as->grid[mkofs(as, x, y)].route == 1);
-					}
-				}
-				printf("Verified: path directions formatted, terminated and returned correctly.\n");
-				
-				// Make sure the final location given in the directions is right.
-				printf("Reached (%d,%d). A* reports (%d,%d) (these should match).\n",
-				       x, y, as->bestofs % as->w, as->bestofs / as->w);
-				free (directions);
-				
-				assert (x == (as->bestofs % as->w));
-				assert (y == (as->bestofs / as->w));
-				printf ("Verified: bestofs co-ordinates match ending location offset.\n");
-				assert (x == (as->bestx));
-				assert (y == (as->besty));
-				printf ("Verified: bestofs co-ordinates match ending location co-ordinates.\n");
-				
-				// Make sure route_steps matches the actual number of steps
-				assert (i == route_steps);
-				
-			} else {
-				printf("No route available.\n");
-			}
-			
-			printf ("\n\n");
-		}
-	}
+
+        for (rep = 0; rep < NUM_REPS; rep++) {
+            for (i = 0; i < 40; i++) {
+                // Run A*.
+
+                // This is only needed for debugging, so the whole map is
+                // visible. Normally, the algorithm only initialises the map grids it
+                // needs, when it needs them.
+                //astar_init_grid (as, 0,0, grid_get);
+
+                printf("Running A* (%d,%d) -> (%d,%d)\n", 1,i, 39,39-i);
+                result_code = astar_run (as, 1,i, 39,39-i);
+                printf("Result: %d (%s)\n", as->result, as->str_result);
+
+                astar_print (as);
+                assert (result_code == as->result);
+                printf("Verified: result code returned and stored.\n");
+                //assert (result_code == ASTAR_FOUND);
+                //printf("Verified: path found.\n");
+
+                printf("Result code:     %u\n", as->result);
+                printf("Run for:         %u.%03u ms\n", as->usecs / 1000, as->usecs % 1000);
+                printf("Steps:           %u\n", as->steps);
+                printf("Score:           %u\n", as->score);
+                printf("Map get()s:      %u of %u (%d%%)\n", as->gets, as->w * as->h, as->gets * 100 / (as->w * as->h));
+                printf("Route available: %d\n", as->have_route);
+
+                // No route, no checking!
+                if (!as->have_route) continue;
+
+                // Verify the directions.
+                uint8_t * directions;
+                uint32_t route_steps = astar_get_directions (as, &directions);
+                uint32_t i, x = as->x0, y=as->y0;
+                uint32_t list_steps = 0;
+
+                if (route_steps) {
+                    printf("Verifying directions. %d step(s) returned.\n", route_steps);
+                    assert (route_steps == as->steps);
+                    printf("Verified: path steps returned and stored.\n");
+                    if (list_steps) {
+                        printf("\tStep ---: start at (%d,%d)\n", x, y);
+                    }
+                    for (i=0; directions[i] != DIR_END; i++) {
+                        uint8_t dir = directions[i];
+
+                        // End of directions?
+                        if (directions[i] == DIR_END) break;
+                        x += as->dx[dir];
+                        y += as->dy[dir];
+                        if (list_steps) {
+                            printf("\tStep %3d: %d (%s), now at (%d,%d)\n",
+                                   i + 1, directions[i], names[directions[i]],
+                                   x, y);
+                        }
+                        // Make sure only the lower 3 bits are used.
+                        assert ((directions[i] & 0xf8) == 0);
+
+                        // Ensure this is really part of the route.
+                        if ((x != as->x1) && (y != as->y1)) {
+                            //printf("\t\t*** ofs=%u (%d,%d), route=%u\n",
+                            //       mkofs(as,x,y), x,y, as->grid[mkofs(as, x, y)].route);
+                            assert (as->grid[mkofs(as, x, y)].route == 1);
+                        }
+                    }
+                    printf("Verified: path directions formatted, terminated and returned correctly.\n");
+
+                    // Make sure the final location given in the directions is right.
+                    printf("Reached (%d,%d). A* reports (%d,%d) (these should match).\n",
+                           x, y, as->bestofs % as->w, as->bestofs / as->w);
+                    free (directions);
+
+                    assert (x == (as->bestofs % as->w));
+                    assert (y == (as->bestofs / as->w));
+                    printf ("Verified: bestofs co-ordinates match ending location offset.\n");
+                    assert (x == (as->bestx));
+                    assert (y == (as->besty));
+                    printf ("Verified: bestofs co-ordinates match ending location co-ordinates.\n");
+
+                    // Make sure route_steps matches the actual number of steps
+                    assert (i == route_steps);
+
+                } else {
+                    printf("No route available.\n");
+                }
+
+                printf ("\n\n");
+            }
+        }
 
         astar_destroy (as);
         printf("All tests were successful.\n");
