@@ -82,7 +82,8 @@ FILE * __astar_debugfp = NULL;
 #define CC 10 // Cardinal direction cost
 #define CD 14 // Diagonal direction cost int(10*sqrt(2))
 
-static const int diro[4] = {4, 0, 2, 6};//, 5, 1, 3, 7}; // Direction order
+//static const int diro[4] = {4, 0, 2, 6};//, 5, 1, 3, 7}; // Direction order
+static const int diro[4] = {0, 6, 2, 4};//, 5, 1, 3, 7}; // Direction order
 
 //                                N    NE    E    SE     S    SW     W    NW
 static const int32_t _dx[8] = {   0,    1,   1,    1,    0,   -1,   -1,   -1 };

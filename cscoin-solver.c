@@ -189,12 +189,16 @@ solve_shortest_path_challenge (CSCoinMT64 *mt64,
     astar_set_origin (&as, 0, 0);
     astar_set_movement_mode (&as, DIR_CARDINAL);
 
-    astar_set_cost (&as, DIR_S, 10);
-    astar_set_cost (&as, DIR_N, 20);
+    /*
+    astar_set_cost (&as, DIR_N, 10);
+    astar_set_cost (&as, DIR_W, 20);
     astar_set_cost (&as, DIR_E, 30);
-    astar_set_cost (&as, DIR_W, 40);
-    // astar_set_steering_penalty (&as, 0);
-    // astar_set_heuristic_factor (10);
+    astar_set_cost (&as, DIR_S, 40);
+    */
+    /*
+    astar_set_steering_penalty (&as, 10);
+    astar_set_heuristic_factor (&as, 10);
+    */
     // astar_set_max_cost (100);
 
     gint result = astar_run (&as, x0, y0, x1, y1);
