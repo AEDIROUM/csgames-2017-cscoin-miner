@@ -291,23 +291,30 @@ cscoin_solve_challenge (gint                        challenge_id,
             guint64 seed;
             guint16 prefix;
         } checksum_digest;
+        guint64 index;
+        guint64 nonce_state;
         guint64 nonce;
         gchar nonce_str[32];
 
         cscoin_mt64_init (&mt64);
 
         /* OpenMP partitionning */
-        guint64 nonce_from, nonce_to;
-        guint64 nonce_partition_size = G_MAXUINT64 / omp_get_num_threads ();
-        nonce_from = omp_get_thread_num () * nonce_partition_size;
-        nonce_to   = nonce_from + nonce_partition_size;
+        guint64 index_from, index_to;
+        guint64 index_partition_size = G_MAXUINT64 / omp_get_num_threads ();
 
-        for (nonce = nonce_from; nonce < nonce_to; nonce++)
+        index_from  = omp_get_thread_num () * index_partition_size;
+        index_to    = index_from + index_partition_size;
+        nonce_state = 15265499401763465969ULL % index_partition_size;
+
+        for (index = index_from; index < index_to; index++)
         {
             if (G_UNLIKELY (done || g_cancellable_is_cancelled (cancellable)))
             {
                 break;
             }
+
+            nonce       = index_from + nonce_state;
+            nonce_state = (nonce_state + 15265499401763465969ULL) % index_partition_size;
 
             g_snprintf (nonce_str, 32, "%lu", nonce);
 
