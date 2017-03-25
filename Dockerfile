@@ -21,6 +21,4 @@ ADD . .
 
 RUN mkdir build && CFLAGS='-march=native -Ofast' meson --buildtype=release build && ninja -C build
 
-RUN openssl genrsa -out default.pem 1024
-
-ENTRYPOINT build/cscoin-miner wss://cscoins.2017.csgames.org:8989/client
+ENTRYPOINT build/cscoin-miner https://cscoins.2017.csgames.org:8989/client
